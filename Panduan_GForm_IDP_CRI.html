@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panduan Setup Google Form – IDP CRI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'IBM Plex Sans',sans-serif;background:#f0f2f5;color:#1a1a2e;padding:32px 16px;font-size:14px;line-height:1.6;}
+  .wrap{max-width:860px;margin:0 auto;}
+
+  .page-header{background:#c8102e;color:#fff;border-radius:8px 8px 0 0;padding:28px 36px;}
+  .page-header h1{font-size:22px;font-weight:700;letter-spacing:.3px;}
+  .page-header p{font-size:12px;opacity:.75;margin-top:4px;}
+  .page-header .badge{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 14px;font-size:11px;font-weight:600;margin-top:10px;}
+
+  .intro-box{background:#fff;border-left:4px solid #c8102e;padding:18px 24px;margin:0;font-size:13px;color:#444;}
+  .intro-box strong{color:#c8102e;}
+
+  .steps-bar{display:flex;background:#1a1a2e;border-radius:0;overflow:hidden;}
+  .step-pill{flex:1;text-align:center;padding:12px 8px;font-size:11px;font-weight:600;color:#aaa;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;border-right:1px solid #2a2a3e;transition:background .2s;}
+  .step-pill:last-child{border-right:none;}
+  .step-pill.active{background:#c8102e;color:#fff;}
+
+  .section-card{background:#fff;margin-bottom:8px;border-radius:0;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+  .section-card:last-child{border-radius:0 0 8px 8px;}
+
+  .sec-header{display:flex;align-items:center;gap:12px;padding:14px 24px;background:#f8f8f8;border-bottom:1px solid #eee;cursor:pointer;user-select:none;}
+  .sec-num{width:28px;height:28px;border-radius:50%;background:#c8102e;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .sec-title{font-weight:700;font-size:14px;flex:1;}
+  .sec-type{font-size:11px;color:#888;background:#f0f0f0;padding:3px 10px;border-radius:20px;font-weight:500;}
+  .sec-toggle{color:#bbb;font-size:18px;transition:transform .2s;}
+
+  .sec-body{padding:20px 24px;display:block;}
+  .sec-body.hidden{display:none;}
+
+  .q-item{margin-bottom:20px;padding-bottom:20px;border-bottom:1px dashed #eee;}
+  .q-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+  .q-num{font-size:10px;font-weight:700;color:#c8102e;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+  .q-title{font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:6px;}
+  .q-type{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#fff;background:#4a4a6a;padding:2px 10px;border-radius:20px;margin-bottom:8px;font-weight:500;}
+  .q-type.short{background:#1a7f64;}
+  .q-type.para{background:#0066cc;}
+  .q-type.choice{background:#7c3aed;}
+  .q-type.check{background:#b45309;}
+  .q-type.drop{background:#0e7490;}
+  .q-desc{font-size:12px;color:#666;margin-bottom:8px;font-style:italic;}
+
+  .copy-box{background:#f5f7fa;border:1px solid #e0e4ea;border-radius:6px;padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#1a1a2e;position:relative;cursor:pointer;transition:background .15s;}
+  .copy-box:hover{background:#eef1f7;border-color:#c8102e;}
+  .copy-box::after{content:'📋 klik untuk copy';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:#aaa;font-family:'IBM Plex Sans',sans-serif;}
+  .copy-box.copied{background:#e6f4ea;border-color:#1a7f64;}
+  .copy-box.copied::after{content:'✓ Tersalin!';color:#1a7f64;}
+
+  .options-list{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;}
+  .opt-tag{background:#f0f2f5;border:1px solid #dde1e9;border-radius:4px;padding:3px 10px;font-size:11px;color:#555;font-weight:500;}
+
+  .req-badge{display:inline-block;background:#fff0f0;color:#c8102e;border:1px solid #f0c0c0;border-radius:4px;font-size:10px;font-weight:700;padding:1px 7px;margin-left:6px;vertical-align:middle;}
+  .opt-badge{display:inline-block;background:#f0f8ff;color:#0066cc;border:1px solid #c0d8f0;border-radius:4px;font-size:10px;font-weight:600;padding:1px 7px;margin-left:6px;vertical-align:middle;}
+
+  .tip-box{background:#fffbea;border:1px solid #f0d060;border-radius:6px;padding:12px 16px;font-size:12px;color:#665000;margin:12px 0;}
+  .tip-box strong{color:#b45309;}
+
+  .how-to{background:#fff;border-radius:8px;padding:28px 36px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+  .how-to h2{font-size:16px;font-weight:700;color:#c8102e;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f0d0d4;}
+  .step-list{counter-reset:steps;}
+  .step-row{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start;}
+  .step-circle{width:32px;height:32px;border-radius:50%;background:#c8102e;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  .step-content h4{font-size:13px;font-weight:700;margin-bottom:3px;}
+  .step-content p{font-size:12px;color:#666;}
+
+  .footer-bar{background:#1a1a2e;color:#666;text-align:center;padding:14px;font-size:11px;border-radius:0 0 8px 8px;letter-spacing:.5px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1>📋 Panduan Setup Google Form — IDP</h1>
+    <p>Monthly Individual Development Report · Champ Resto Indonesia</p>
+    <div class="badge">FORM 1: Monthly Report &nbsp;·&nbsp; FORM 2: Gap Tracker</div>
+  </div>
+
+  <!-- HOW TO -->
+  <div class="how-to" style="border-radius:0;margin-bottom:0;border-top:none;">
+    <h2>🚀 Cara Menggunakan Panduan Ini</h2>
+    <div class="step-row"><div class="step-circle">1</div><div class="step-content"><h4>Buka Google Forms</h4><p>Kunjungi <strong>forms.google.com</strong> → klik tombol <strong>+</strong> untuk form baru.</p></div></div>
+    <div class="step-row"><div class="step-circle">2</div><div class="step-content"><h4>Buat Section</h4><p>Klik ikon <strong>≡+</strong> (Add section) untuk memisahkan bagian sesuai urutan di bawah.</p></div></div>
+    <div class="step-row"><div class="step-circle">3</div><div class="step-content"><h4>Tambah Pertanyaan</h4><p>Klik <strong>+</strong> untuk tiap pertanyaan. Pilih tipe yang tertera, lalu paste teks dari kotak abu-abu.</p></div></div>
+    <div class="step-row"><div class="step-circle">4</div><div class="step-content"><h4>Atur Required / Optional</h4><p>Toggle <strong>Required</strong> ON untuk pertanyaan bertanda <span class="req-badge">WAJIB</span>, biarkan OFF untuk <span class="opt-badge">OPSIONAL</span>.</p></div></div>
+    <div class="step-row"><div class="step-circle">5</div><div class="step-content"><h4>Share ke Karyawan</h4><p>Klik <strong>Send</strong> → copy link → bagikan via WhatsApp / email.</p></div></div>
+  </div>
+
+  <div class="intro-box">
+    <strong>Tips:</strong> Klik kotak teks abu-abu untuk menyalin otomatis. Buat <strong>2 form terpisah</strong>: satu untuk Monthly Report (diisi tiap bulan), satu untuk Gap Tracker (diisi saat akhir program atau per sesi review).
+  </div>
+
+  <!-- ═══════════ FORM 1 ═══════════ -->
+  <div class="steps-bar" style="margin-top:24px;">
+    <div class="step-pill active">FORM 1 — Monthly Report</div>
+    <div class="step-pill" style="background:#2a2a3e;color:#888;">FORM 2 — Gap Tracker</div>
+  </div>
+
+  <!-- SECTION 1: Header Form -->
+  <div class="section-card">
+    <div class="sec-header" onclick="toggle(this)">
+      <div class="sec-num">★</div>
+      <div class="sec-title">Judul & Deskripsi Form</div>
+      <div class="sec-type">Setting Awal</div>
+      <div class="sec-toggle">▾</div>
+    </div>
+    <div class="sec-body">
+      <div class="q-item">
+        <div class="q-num">JUDUL FORM</div>
+        <div class="copy-box" onclick="copyText(this)">Monthly Individual Development Report — IDP CRI</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">DESKRIPSI FORM</div>
+        <div class="copy-box" onclick="copyText(this)">Form laporan pengembangan individu bulanan dalam rangka program IDP (Individual Development Program) Champ Resto Indonesia. Mohon diisi dengan jujur dan lengkap setiap bulan sesuai jadwal sesi yang telah ditentukan.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Data Kandidat -->
+  <div class="section-card">
+    <div class="sec-header" onclick="toggle(this)">
+      <div class="sec-num">1</div>
+      <div class="sec-title">Section 1 — Data Kandidat</div>
+      <div class="sec-type">6 Pertanyaan</div>
+      <div class="sec-toggle">▾</div>
+    </div>
+    <div class="sec-body">
+      <div class="tip-box">📌 Buat section baru bernama <strong>"DATA KANDIDAT"</strong> di Google Form sebelum menambahkan pertanyaan berikut.</div>
+
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 1</div>
+        <div class="q-title">Nama Kandidat <span class="req-badge">WAJIB</span></div>
+        <div class="q-type short">Short Answer</div>
+        <div class="copy-box" onclick="copyText(this)">Nama Kandidat</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 2</div>
+        <div class="q-title">NIK <span class="req-badge">WAJIB</span></div>
+        <div class="q-type short">Short Answer</div>
+        <div class="copy-box" onclick="copyText(this)">NIK (Nomor Induk Karyawan)</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 3</div>
+        <div class="q-title">Posisi / Jabatan <span class="req-badge">WAJIB</span></div>
+        <div class="q-type short">Short Answer</div>
+        <div class="copy-box" onclick="copyText(this)">Posisi / Jabatan</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 4</div>
+        <div class="q-title">Level <span class="req-badge">WAJIB</span></div>
+        <div class="q-type drop">Dropdown</div>
+        <div class="copy-box" onclick="copyText(this)">Level Jabatan</div>
+        <div class="options-list">
+          <span class="opt-tag">Staff</span><span class="opt-tag">Supervisor</span><span class="opt-tag">Assistant Manager</span><span class="opt-tag">Manager</span><span class="opt-tag">Senior Manager</span><span class="opt-tag">General Manager</span><span class="opt-tag">Direktur</span>
+        </div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 5</div>
+        <div class="q-title">Divisi / Department <span class="req-badge">WAJIB</span></div>
+        <div class="q-type short">Short Answer</div>
+        <div class="copy-box" onclick="copyText(this)">Divisi / Department</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 6</div>
+        <div class="q-title">Nama Atasan Langsung <span class="req-badge">WAJIB</span></div>
+        <div class="q-type short">Short Answer</div>
+        <div class="copy-box" onclick="copyText(this)">Nama Atasan Langsung / Supervisor</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Info Sesi -->
+  <div class="section-card">
+    <div class="sec-header" onclick="toggle(this)">
+      <div class="sec-num">2</div>
+      <div class="sec-title">Section 2 — Informasi Sesi</div>
+      <div class="sec-type">2 Pertanyaan</div>
+      <div class="sec-toggle">▾</div>
+    </div>
+    <div class="sec-body">
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 7</div>
+        <div class="q-title">Bulan Laporan <span class="req-badge">WAJIB</span></div>
+        <div class="q-type drop">Dropdown</div>
+        <div class="copy-box" onclick="copyText(this)">Bulan Laporan</div>
+        <div class="options-list">
+          <span class="opt-tag">Januari</span><span class="opt-tag">Februari</span><span class="opt-tag">Maret</span><span class="opt-tag">April</span><span class="opt-tag">Mei</span><span class="opt-tag">Juni</span><span class="opt-tag">Juli</span><span class="opt-tag">Agustus</span><span class="opt-tag">September</span><span class="opt-tag">Oktober</span><span class="opt-tag">November</span><span class="opt-tag">Desember</span>
+        </div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 8</div>
+        <div class="q-title">Sesi ke- <span class="req-badge">WAJIB</span></div>
+        <div class="q-type drop">Dropdown</div>
+        <div class="copy-box" onclick="copyText(this)">Sesi ke- (dari total 6 sesi)</div>
+        <div class="options-list">
+          <span class="opt-tag">Sesi 1</span><span class="opt-tag">Sesi 2</span><span class="opt-tag">Sesi 3</span><span class="opt-tag">Sesi 4</span><span class="opt-tag">Sesi 5</span><span class="opt-tag">Sesi 6</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Area & Target -->
+  <div class="section-card">
+    <div class="sec-header" onclick="toggle(this)">
+      <div class="sec-num">3</div>
+      <div class="sec-title">Section 3 — Area & Target Pengembangan</div>
+      <div class="sec-type">6 Pertanyaan</div>
+      <div class="sec-toggle">▾</div>
+    </div>
+    <div class="sec-body">
+      <div class="tip-box">📌 Ulangi pola ini untuk Target 1, 2, dan 3.</div>
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 9</div>
+        <div class="q-title">Area Pengembangan – Target 1 <span class="req-badge">WAJIB</span></div>
+        <div class="q-type short">Short Answer</div>
+        <div class="copy-box" onclick="copyText(this)">Area Pengembangan – Target 1</div>
+        <div class="q-desc">Contoh: Leadership, Communication, Technical Skill, dst.</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 10</div>
+        <div class="q-title">Uraian Target – Target 1 <span class="req-badge">WAJIB</span></div>
+        <div class="q-type para">Paragraph</div>
+        <div class="copy-box" onclick="copyText(this)">Uraian Target yang Ingin Dicapai – Target 1</div>
+        <div class="q-desc">Jelaskan secara spesifik target yang ingin dicapai pada area ini.</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 11</div>
+        <div class="q-title">Area Pengembangan – Target 2 <span class="opt-badge">OPSIONAL</span></div>
+        <div class="q-type short">Short Answer</div>
+        <div class="copy-box" onclick="copyText(this)">Area Pengembangan – Target 2</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 12</div>
+        <div class="q-title">Uraian Target – Target 2 <span class="opt-badge">OPSIONAL</span></div>
+        <div class="q-type para">Paragraph</div>
+        <div class="copy-box" onclick="copyText(this)">Uraian Target yang Ingin Dicapai – Target 2</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 13</div>
+        <div class="q-title">Area Pengembangan – Target 3 <span class="opt-badge">OPSIONAL</span></div>
+        <div class="q-type short">Short Answer</div>
+        <div class="copy-box" onclick="copyText(this)">Area Pengembangan – Target 3</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 14</div>
+        <div class="q-title">Uraian Target – Target 3 <span class="opt-badge">OPSIONAL</span></div>
+        <div class="q-type para">Paragraph</div>
+        <div class="copy-box" onclick="copyText(this)">Uraian Target yang Ingin Dicapai – Target 3</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 15</div>
+        <div class="q-title">Realisasi Waktu Pelaksanaan <span class="req-badge">WAJIB</span></div>
+        <div class="q-type short">Short Answer</div>
+        <div class="copy-box" onclick="copyText(this)">Realisasi Waktu Pelaksanaan (tanggal / periode)</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 16</div>
+        <div class="q-title">Metode Pengembangan <span class="req-badge">WAJIB</span></div>
+        <div class="q-type check">Checkboxes</div>
+        <div class="copy-box" onclick="copyText(this)">Metode Pengembangan yang Digunakan</div>
+        <div class="options-list">
+          <span class="opt-tag">Training / Pelatihan</span><span class="opt-tag">Coaching</span><span class="opt-tag">Mentoring</span><span class="opt-tag">On-the-Job Learning</span><span class="opt-tag">Self-Study / Mandiri</span><span class="opt-tag">E-Learning</span><span class="opt-tag">Workshop / Seminar</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: Aktivitas -->
+  <div class="section-card">
+    <div class="sec-header" onclick="toggle(this)">
+      <div class="sec-num">4</div>
+      <div class="sec-title">Section 4 — Aktivitas Dilaksanakan</div>
+      <div class="sec-type">5 Pertanyaan</div>
+      <div class="sec-toggle">▾</div>
+    </div>
+    <div class="sec-body">
+      <div class="tip-box">📌 Buat 5 pertanyaan bertipe <strong>Paragraph</strong>. Wajibkan minimal Aktivitas 1, sisanya opsional.</div>
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 17–21</div>
+        <div class="q-title">Aktivitas 1 s/d 5</div>
+        <div class="q-type para">Paragraph</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+          <div class="copy-box" onclick="copyText(this)">Aktivitas 1 yang Telah Dilaksanakan</div>
+          <div class="copy-box" onclick="copyText(this)">Aktivitas 2 yang Telah Dilaksanakan</div>
+          <div class="copy-box" onclick="copyText(this)">Aktivitas 3 yang Telah Dilaksanakan</div>
+          <div class="copy-box" onclick="copyText(this)">Aktivitas 4 yang Telah Dilaksanakan</div>
+          <div class="copy-box" onclick="copyText(this)">Aktivitas 5 yang Telah Dilaksanakan</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: Kendala -->
+  <div class="section-card">
+    <div class="sec-header" onclick="toggle(this)">
+      <div class="sec-num">5</div>
+      <div class="sec-title">Section 5 — Kendala & Pencapaian Tambahan</div>
+      <div class="sec-type">6 Pertanyaan</div>
+      <div class="sec-toggle">▾</div>
+    </div>
+    <div class="sec-body">
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 22–24</div>
+        <div class="q-title">Kendala 1–3 <span class="opt-badge">OPSIONAL</span></div>
+        <div class="q-type para">Paragraph</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+          <div class="copy-box" onclick="copyText(this)">Kendala 1 yang Dihadapi Bulan Ini</div>
+          <div class="copy-box" onclick="copyText(this)">Kendala 2 yang Dihadapi Bulan Ini</div>
+          <div class="copy-box" onclick="copyText(this)">Kendala 3 yang Dihadapi Bulan Ini</div>
+        </div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 25–27</div>
+        <div class="q-title">Pencapaian Tambahan 1–3 <span class="opt-badge">OPSIONAL</span></div>
+        <div class="q-type para">Paragraph</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+          <div class="copy-box" onclick="copyText(this)">Pencapaian Tambahan 1 di Luar Rencana</div>
+          <div class="copy-box" onclick="copyText(this)">Pencapaian Tambahan 2 di Luar Rencana</div>
+          <div class="copy-box" onclick="copyText(this)">Pencapaian Tambahan 3 di Luar Rencana</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: Komentar -->
+  <div class="section-card" style="border-radius:0 0 8px 8px;">
+    <div class="sec-header" onclick="toggle(this)">
+      <div class="sec-num">6</div>
+      <div class="sec-title">Section 6 — Komentar Atasan</div>
+      <div class="sec-type">1 Pertanyaan</div>
+      <div class="sec-toggle">▾</div>
+    </div>
+    <div class="sec-body">
+      <div class="tip-box">📌 Section ini bisa diisi oleh atasan setelah karyawan submit, atau gunakan form terpisah untuk atasan.</div>
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN 28</div>
+        <div class="q-title">Komentar & Masukan Atasan <span class="opt-badge">OPSIONAL</span></div>
+        <div class="q-type para">Paragraph</div>
+        <div class="copy-box" onclick="copyText(this)">Komentar dan Masukan dari Atasan Langsung</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ FORM 2 ═══════════ -->
+  <div class="steps-bar" style="margin-top:32px;">
+    <div class="step-pill" style="background:#2a2a3e;color:#888;">FORM 1 — Monthly Report</div>
+    <div class="step-pill active">FORM 2 — Gap Tracker</div>
+  </div>
+
+  <!-- JUDUL FORM 2 -->
+  <div class="section-card">
+    <div class="sec-header" onclick="toggle(this)">
+      <div class="sec-num">★</div>
+      <div class="sec-title">Judul & Deskripsi Form 2</div>
+      <div class="sec-type">Setting Awal</div>
+      <div class="sec-toggle">▾</div>
+    </div>
+    <div class="sec-body">
+      <div class="q-item">
+        <div class="q-num">JUDUL FORM</div>
+        <div class="copy-box" onclick="copyText(this)">IDP Gap & Pencapaian Tracker — Bulan 1 s/d 6 | CRI</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">DESKRIPSI FORM</div>
+        <div class="copy-box" onclick="copyText(this)">Form ini digunakan untuk merekap gap kompetensi dan pencapaian karyawan selama program IDP berlangsung (6 bulan). Diisi setiap akhir sesi bulanan atau saat review bersama supervisor.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM 2 SECTION 1 -->
+  <div class="section-card">
+    <div class="sec-header" onclick="toggle(this)">
+      <div class="sec-num">1</div>
+      <div class="sec-title">Section 1 — Identitas</div>
+      <div class="sec-type">4 Pertanyaan</div>
+      <div class="sec-toggle">▾</div>
+    </div>
+    <div class="sec-body">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="copy-box" onclick="copyText(this)">Nama Kandidat</div>
+        <div class="copy-box" onclick="copyText(this)">NIK (Nomor Induk Karyawan)</div>
+        <div class="copy-box" onclick="copyText(this)">Posisi / Jabatan</div>
+        <div class="copy-box" onclick="copyText(this)">Sesi yang Sedang Dilaporkan</div>
+      </div>
+      <div class="options-list" style="margin-top:10px;">
+        <span style="font-size:11px;color:#888;font-weight:600;">Opsi untuk Sesi:</span>
+        <span class="opt-tag">Sesi 1</span><span class="opt-tag">Sesi 2</span><span class="opt-tag">Sesi 3</span><span class="opt-tag">Sesi 4</span><span class="opt-tag">Sesi 5</span><span class="opt-tag">Sesi 6</span><span class="opt-tag">Rekap Akhir (Semua Sesi)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM 2 SECTION 2: GAP -->
+  <div class="section-card">
+    <div class="sec-header" onclick="toggle(this)">
+      <div class="sec-num">2</div>
+      <div class="sec-title">Section 2 — Gap & Pencapaian (Per Kompetensi)</div>
+      <div class="sec-type">15 Pertanyaan (5 Gap × 3)</div>
+      <div class="sec-toggle">▾</div>
+    </div>
+    <div class="sec-body">
+      <div class="tip-box">📌 Ulangi pola 3 pertanyaan ini untuk Gap 1 hingga Gap 5.</div>
+
+      <div class="q-item">
+        <div class="q-num">GAP 1 — PERTANYAAN A</div>
+        <div class="q-title">Gap / Kompetensi yang Dikembangkan <span class="req-badge">WAJIB</span></div>
+        <div class="q-type short">Short Answer</div>
+        <div class="copy-box" onclick="copyText(this)">Gap / Kompetensi 1 yang Dikembangkan</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">GAP 1 — PERTANYAAN B</div>
+        <div class="q-title">Kondisi Sebelum & Pencapaian Setelah Program <span class="req-badge">WAJIB</span></div>
+        <div class="q-type para">Paragraph</div>
+        <div class="copy-box" onclick="copyText(this)">Kondisi Sebelum Program & Pencapaian Setelah Program — Kompetensi 1</div>
+        <div class="q-desc">Jelaskan kondisi awal (gap) dan pencapaian yang sudah diraih hingga sesi ini.</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">GAP 1 — PERTANYAAN C</div>
+        <div class="q-title">Tingkat Kemahiran Saat Ini <span class="req-badge">WAJIB</span></div>
+        <div class="q-type drop">Dropdown</div>
+        <div class="copy-box" onclick="copyText(this)">Tingkat Kemahiran Saat Ini — Kompetensi 1</div>
+        <div class="options-list">
+          <span class="opt-tag">1 – Novice (Baru Mengenal)</span>
+          <span class="opt-tag">2 – Basic (Dasar)</span>
+          <span class="opt-tag">3 – Intermediate (Cukup Mahir)</span>
+          <span class="opt-tag">4 – Advanced (Mahir)</span>
+          <span class="opt-tag">5 – Expert (Sangat Mahir)</span>
+        </div>
+      </div>
+      <div class="tip-box" style="margin-top:0;">↩ Ulangi pola yang sama untuk <strong>Kompetensi 2, 3, 4, dan 5</strong> — ganti angka di akhir nama pertanyaan.</div>
+    </div>
+  </div>
+
+  <!-- FORM 2 SECTION 3 -->
+  <div class="section-card" style="border-radius:0 0 8px 8px;">
+    <div class="sec-header" onclick="toggle(this)">
+      <div class="sec-num">3</div>
+      <div class="sec-title">Section 3 — Evaluasi & Rekomendasi</div>
+      <div class="sec-type">2 Pertanyaan</div>
+      <div class="sec-toggle">▾</div>
+    </div>
+    <div class="sec-body">
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN AKHIR A</div>
+        <div class="q-title">Catatan Evaluasi <span class="opt-badge">OPSIONAL</span></div>
+        <div class="q-type para">Paragraph</div>
+        <div class="copy-box" onclick="copyText(this)">Catatan Evaluasi & Rekomendasi Tindak Lanjut Program IDP</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">PERTANYAAN AKHIR B</div>
+        <div class="q-title">Rating Keseluruhan Program <span class="req-badge">WAJIB</span></div>
+        <div class="q-type choice">Linear Scale (1–5)</div>
+        <div class="copy-box" onclick="copyText(this)">Seberapa efektif program IDP ini dalam mendukung pengembangan Anda? (1 = Tidak Efektif, 5 = Sangat Efektif)</div>
+        <div class="q-desc">Gunakan tipe <strong>Linear Scale</strong> di Google Forms, atur dari 1 sampai 5.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bar" style="margin-top:8px;border-radius:8px;">
+    PANDUAN GOOGLE FORM — IDP MONTHLY REPORT & GAP TRACKER · CHAMP RESTO INDONESIA · 2026
+  </div>
+</div>
+
+<script>
+function toggle(el){
+  const body = el.nextElementSibling;
+  const arrow = el.querySelector('.sec-toggle');
+  body.classList.toggle('hidden');
+  arrow.textContent = body.classList.contains('hidden') ? '▸' : '▾';
+}
+function copyText(el){
+  const text = el.innerText.replace('📋 klik untuk copy','').replace('✓ Tersalin!','').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    el.classList.add('copied');
+    setTimeout(()=>el.classList.remove('copied'),2000);
+  });
+}
+</script>
+</body>
+</html>
