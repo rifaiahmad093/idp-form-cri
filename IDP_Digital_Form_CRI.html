@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDP Digital Form — Champ Resto Indonesia</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --red: #C8102E;
+  --red-dark: #a00d24;
+  --dark: #0f0f1a;
+  --dark2: #1a1a2e;
+  --gray: #f4f5f7;
+  --border: #e2e5eb;
+  --text: #1a1a2e;
+  --muted: #7a7d8a;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: #eef0f5;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* TOP BAR */
+.topbar {
+  background: var(--dark2);
+  padding: 0 0 0 0;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 16px rgba(0,0,0,.25);
+}
+.topbar-inner {
+  max-width: 760px; margin: 0 auto;
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 20px;
+}
+.logo-dot { width: 36px; height: 36px; border-radius: 50%; background: var(--red); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:11px; flex-shrink:0; }
+.topbar-title { flex:1; }
+.topbar-title h1 { font-size:13px; font-weight:700; color:#fff; }
+.topbar-title p { font-size:10px; color:#666; margin-top:1px; }
+.tab-pills { display:flex; gap:4px; }
+.tab-pill { padding:7px 14px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; color:#666; transition:all .2s; border:none; background:transparent; font-family:'Plus Jakarta Sans',sans-serif; letter-spacing:.3px; }
+.tab-pill.active { background:var(--red); color:#fff; }
+.tab-pill:hover:not(.active) { background:rgba(255,255,255,.08); color:#ccc; }
+
+/* WRAPPER */
+.wrapper { max-width: 760px; margin: 0 auto; padding: 28px 16px 60px; }
+
+/* FORM PANEL */
+.form-panel { display:none; }
+.form-panel.active { display:block; }
+
+/* FORM CARD */
+.form-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,.07);
+  margin-bottom: 12px;
+}
+
+/* FORM HEADER */
+.form-header {
+  background: var(--red);
+  padding: 24px 28px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.form-header::before {
+  content:'';
+  position:absolute; right:-40px; top:-40px;
+  width:160px; height:160px; border-radius:50%;
+  background:rgba(255,255,255,.06);
+}
+.form-header h2 { font-size:18px; font-weight:800; color:#fff; letter-spacing:.3px; position:relative; }
+.form-header p { font-size:11px; color:rgba(255,255,255,.65); margin-top:4px; position:relative; }
+.session-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25);
+  border-radius:20px; padding:4px 12px; margin-top:10px;
+  font-size:11px; color:#fff; font-weight:600; position:relative;
+}
+
+/* SECTION BLOCK */
+.sec-block { border-bottom: 1px solid var(--border); }
+.sec-block:last-child { border-bottom: none; }
+.sec-label {
+  display:flex; align-items:center; gap:10px;
+  padding: 14px 28px 12px;
+  background: var(--gray);
+  border-bottom: 1px solid var(--border);
+}
+.sec-label-dot { width:8px; height:8px; border-radius:50%; background:var(--red); flex-shrink:0; }
+.sec-label span { font-size:10px; font-weight:800; color:var(--red); letter-spacing:1.5px; text-transform:uppercase; }
+.sec-body { padding: 20px 28px; display:flex; flex-direction:column; gap:16px; }
+
+/* FIELD */
+.field { display:flex; flex-direction:column; gap:6px; }
+.field-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.field label {
+  font-size:11px; font-weight:700; color:var(--muted);
+  letter-spacing:.5px; text-transform:uppercase;
+  display:flex; align-items:center; gap:6px;
+}
+.req-star { color:var(--red); font-size:13px; line-height:1; }
+
+.field input,
+.field select,
+.field textarea {
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: #fafbfc;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+  width: 100%;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--red);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(200,16,46,.08);
+}
+.field textarea { resize:vertical; min-height:72px; line-height:1.6; }
+.field select { cursor:pointer; }
+
+/* TARGET CARDS */
+.target-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.target-card {
+  border: 1.5px solid var(--border);
+  border-radius:10px; overflow:hidden;
+}
+.target-card-head {
+  background:var(--red); padding:8px 12px;
+  font-size:10px; font-weight:800; color:#fff; letter-spacing:1px; text-transform:uppercase;
+}
+.target-card-body { padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
+.target-card-body input,
+.target-card-body textarea {
+  border:1.5px solid var(--border); border-radius:6px;
+  padding:8px 10px; font-size:12px; font-family:'Plus Jakarta Sans',sans-serif;
+  outline:none; width:100%; background:#fafbfc; transition:border-color .15s;
+}
+.target-card-body input:focus,
+.target-card-body textarea:focus { border-color:var(--red); background:#fff; }
+.target-card-body textarea { min-height:60px; resize:none; line-height:1.5; }
+.target-card-body .mini-label { font-size:9px; font-weight:700; color:var(--muted); letter-spacing:.8px; text-transform:uppercase; }
+
+/* NUMBERED INPUTS */
+.num-inputs { display:flex; flex-direction:column; gap:8px; }
+.num-input-row { display:flex; align-items:center; gap:10px; }
+.num-bubble {
+  width:26px; height:26px; border-radius:50%;
+  background:var(--red); color:#fff;
+  font-size:11px; font-weight:800;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.num-bubble.gray { background:#dde0e8; color:var(--muted); }
+.num-input-row input {
+  flex:1; border:1.5px solid var(--border); border-radius:8px;
+  padding:9px 14px; font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13px; outline:none; background:#fafbfc; transition:border-color .15s;
+}
+.num-input-row input:focus { border-color:var(--red); background:#fff; }
+
+/* GAP TABLE */
+.gap-row {
+  border:1.5px solid var(--border); border-radius:10px;
+  overflow:hidden; margin-bottom:8px;
+}
+.gap-row:last-child { margin-bottom:0; }
+.gap-row-head {
+  display:flex; align-items:center; gap:10px;
+  background:var(--gray); padding:10px 16px;
+  border-bottom:1px solid var(--border);
+}
+.gap-num {
+  width:28px; height:28px; border-radius:50%;
+  background:var(--red); color:#fff;
+  font-size:12px; font-weight:800;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.gap-row-head span { font-size:12px; font-weight:700; color:var(--text); }
+.gap-row-body { padding:14px 16px; display:flex; flex-direction:column; gap:10px; }
+.gap-month-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+.gap-month-item { display:flex; flex-direction:column; gap:4px; }
+.gap-month-label {
+  font-size:9px; font-weight:800; color:#fff;
+  background:var(--red); text-align:center;
+  padding:3px 0; border-radius:4px 4px 0 0;
+  letter-spacing:.5px;
+}
+.gap-month-inputs { display:flex; flex-direction:column; gap:3px; }
+.gap-month-inputs input {
+  border:1px solid var(--border); border-radius:0 0 4px 4px;
+  padding:5px 7px; font-size:11px; font-family:'Plus Jakarta Sans',sans-serif;
+  outline:none; background:#fafbfc; width:100%; transition:border-color .15s;
+}
+.gap-month-inputs input:focus { border-color:var(--red); background:#fff; }
+.gap-month-inputs input::placeholder { color:#ccc; font-size:10px; }
+.kemahiran-row { display:flex; align-items:center; gap:10px; }
+.kemahiran-label { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; white-space:nowrap; }
+.kemahiran-select {
+  flex:1; border:1.5px solid var(--border); border-radius:8px;
+  padding:8px 12px; font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:12px; font-weight:700; outline:none; cursor:pointer;
+  transition:all .15s; background:#fafbfc;
+}
+.kemahiran-select:focus { border-color:var(--red); }
+.kemahiran-select.lv1 { background:#fff0f0; color:#b91c1c; border-color:#f0c0c0; }
+.kemahiran-select.lv2 { background:#fffbea; color:#92400e; border-color:#f0e0a0; }
+.kemahiran-select.lv3 { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+.kemahiran-select.lv4 { background:#f0fdf4; color:#065f46; border-color:#a7f3d0; }
+.kemahiran-select.lv5 { background:#f5f3ff; color:#5b21b6; border-color:#ddd6fe; }
+
+/* SUBMIT */
+.submit-area { padding: 24px 28px; background:var(--gray); border-top:1px solid var(--border); }
+.btn-submit {
+  width:100%; padding:14px; border:none; border-radius:10px;
+  background:var(--red); color:#fff;
+  font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:800;
+  cursor:pointer; letter-spacing:.5px;
+  transition:background .15s, transform .1s, box-shadow .15s;
+  box-shadow: 0 4px 14px rgba(200,16,46,.3);
+}
+.btn-submit:hover { background:var(--red-dark); transform:translateY(-1px); box-shadow:0 6px 20px rgba(200,16,46,.35); }
+.btn-submit:active { transform:translateY(0); }
+.submit-note { font-size:11px; color:var(--muted); text-align:center; margin-top:10px; }
+
+/* SUCCESS */
+.success-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(15,15,26,.85); z-index:999;
+  align-items:center; justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.success-overlay.show { display:flex; }
+.success-box {
+  background:#fff; border-radius:16px;
+  padding:40px 48px; text-align:center;
+  max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,.3);
+  animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn { from{transform:scale(.8);opacity:0} to{transform:scale(1);opacity:1} }
+.success-icon { font-size:52px; margin-bottom:16px; }
+.success-box h3 { font-size:20px; font-weight:800; color:var(--text); margin-bottom:8px; }
+.success-box p { font-size:13px; color:var(--muted); line-height:1.6; }
+.btn-reset {
+  margin-top:20px; padding:12px 32px; border:none; border-radius:8px;
+  background:var(--red); color:#fff; font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13px; font-weight:700; cursor:pointer; transition:background .15s;
+}
+.btn-reset:hover { background:var(--red-dark); }
+
+/* SESSION TRACKER */
+.session-tracker {
+  display:grid; grid-template-columns:repeat(6,1fr); gap:6px;
+  margin-bottom:12px;
+}
+.sess-box {
+  background:#fff; border-radius:8px; padding:10px 8px;
+  text-align:center; border:1.5px solid var(--border);
+  box-shadow:0 1px 4px rgba(0,0,0,.05);
+}
+.sess-box.done { border-color:#a7f3d0; background:#f0fdf4; }
+.sess-box.active { border-color:var(--red); background:#fff0f0; }
+.sess-num { font-size:18px; font-weight:800; color:var(--text); }
+.sess-num.red { color:var(--red); }
+.sess-num.green { color:#065f46; }
+.sess-label { font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-top:2px; }
+.sess-status { font-size:10px; font-weight:700; margin-top:3px; color:var(--muted); }
+.sess-status.done { color:#065f46; }
+.sess-status.active { color:var(--red); }
+
+@media (max-width:600px) {
+  .target-grid { grid-template-columns:1fr; }
+  .gap-month-grid { grid-template-columns:repeat(3,1fr); }
+  .field-row { grid-template-columns:1fr; }
+  .session-tracker { grid-template-columns:repeat(3,1fr); }
+  .topbar-inner { flex-wrap:wrap; }
+  .tab-pills { width:100%; }
+  .tab-pill { flex:1; text-align:center; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="logo-dot">CRI</div>
+    <div class="topbar-title">
+      <h1>IDP Digital Form</h1>
+      <p>Champ Resto Indonesia · Human Capital</p>
+    </div>
+    <div class="tab-pills">
+      <button class="tab-pill active" onclick="switchTab('monthly')">Monthly Report</button>
+      <button class="tab-pill" onclick="switchTab('gap')">Gap Tracker</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrapper">
+
+<!-- ═══════════════════════════════════
+     PANEL 1 — MONTHLY REPORT
+════════════════════════════════════ -->
+<div class="form-panel active" id="panel-monthly">
+
+  <div class="form-card">
+    <!-- HEADER -->
+    <div class="form-header">
+      <h2>Monthly Individual Development Report</h2>
+      <p>Individual Development Program (IDP) · /CRI/2026/OPS-001</p>
+      <div class="session-badge">📋 Isi setiap bulan sesuai sesi yang berjalan</div>
+    </div>
+
+    <!-- DATA KANDIDAT -->
+    <div class="sec-block">
+      <div class="sec-label"><div class="sec-label-dot"></div><span>Data Kandidat</span></div>
+      <div class="sec-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Nama Kandidat <span class="req-star">*</span></label>
+            <input type="text" placeholder="Nama lengkap karyawan">
+          </div>
+          <div class="field">
+            <label>NIK <span class="req-star">*</span></label>
+            <input type="text" placeholder="Nomor Induk Karyawan">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Posisi / Jabatan <span class="req-star">*</span></label>
+            <input type="text" placeholder="e.g. BU Head MS Family">
+          </div>
+          <div class="field">
+            <label>Level <span class="req-star">*</span></label>
+            <select>
+              <option value="">— Pilih Level —</option>
+              <option>Staff</option><option>Supervisor</option>
+              <option>Assistant Manager</option><option>Manager</option>
+              <option selected>Senior Manager</option><option>General Manager</option><option>Direktur</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Divisi / Department <span class="req-star">*</span></label>
+            <input type="text" placeholder="e.g. Operation">
+          </div>
+          <div class="field">
+            <label>Atasan Langsung <span class="req-star">*</span></label>
+            <input type="text" placeholder="Nama supervisor / mentor">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFORMASI SESI -->
+    <div class="sec-block">
+      <div class="sec-label"><div class="sec-label-dot"></div><span>Informasi Sesi</span></div>
+      <div class="sec-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Bulan Laporan <span class="req-star">*</span></label>
+            <select>
+              <option>Januari</option><option>Februari</option><option>Maret</option>
+              <option selected>April</option><option>Mei</option><option>Juni</option>
+              <option>Juli</option><option>Agustus</option><option>September</option>
+              <option>Oktober</option><option>November</option><option>Desember</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Sesi ke- <span class="req-star">*</span></label>
+            <select>
+              <option selected>Sesi 1 of 6</option><option>Sesi 2 of 6</option>
+              <option>Sesi 3 of 6</option><option>Sesi 4 of 6</option>
+              <option>Sesi 5 of 6</option><option>Sesi 6 of 6</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AREA & TARGET -->
+    <div class="sec-block">
+      <div class="sec-label"><div class="sec-label-dot"></div><span>Area &amp; Target Pengembangan</span></div>
+      <div class="sec-body">
+        <div class="target-grid">
+          <div class="target-card">
+            <div class="target-card-head">Target 1</div>
+            <div class="target-card-body">
+              <div class="mini-label">Area</div>
+              <input type="text" placeholder="Tulis area...">
+              <div class="mini-label">Target</div>
+              <textarea placeholder="Uraikan target yang ingin dicapai..."></textarea>
+            </div>
+          </div>
+          <div class="target-card">
+            <div class="target-card-head">Target 2</div>
+            <div class="target-card-body">
+              <div class="mini-label">Area</div>
+              <input type="text" placeholder="Tulis area...">
+              <div class="mini-label">Target</div>
+              <textarea placeholder="Uraikan target yang ingin dicapai..."></textarea>
+            </div>
+          </div>
+          <div class="target-card">
+            <div class="target-card-head">Target 3</div>
+            <div class="target-card-body">
+              <div class="mini-label">Area</div>
+              <input type="text" placeholder="Tulis area...">
+              <div class="mini-label">Target</div>
+              <textarea placeholder="Uraikan target yang ingin dicapai..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Realisasi Waktu Pelaksanaan <span class="req-star">*</span></label>
+            <input type="text" placeholder="Tanggal / periode pelaksanaan">
+          </div>
+          <div class="field">
+            <label>Metode Pengembangan <span class="req-star">*</span></label>
+            <select>
+              <option value="">— Pilih Metode —</option>
+              <option>Training / Pelatihan</option><option>Coaching</option>
+              <option>Mentoring</option><option>On-the-Job Learning</option>
+              <option>Self-Study / Mandiri</option><option>E-Learning</option>
+              <option>Workshop / Seminar</option><option>Kombinasi</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AKTIVITAS -->
+    <div class="sec-block">
+      <div class="sec-label"><div class="sec-label-dot"></div><span>Aktivitas yang Telah Dilaksanakan</span></div>
+      <div class="sec-body">
+        <div class="num-inputs">
+          <div class="num-input-row"><div class="num-bubble">1</div><input type="text" placeholder="Tulis aktivitas pertama..."></div>
+          <div class="num-input-row"><div class="num-bubble">2</div><input type="text" placeholder="Tulis aktivitas kedua..."></div>
+          <div class="num-input-row"><div class="num-bubble gray">3</div><input type="text" placeholder="(opsional)"></div>
+          <div class="num-input-row"><div class="num-bubble gray">4</div><input type="text" placeholder="(opsional)"></div>
+          <div class="num-input-row"><div class="num-bubble gray">5</div><input type="text" placeholder="(opsional)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KENDALA -->
+    <div class="sec-block">
+      <div class="sec-label"><div class="sec-label-dot"></div><span>Kendala yang Dihadapi</span></div>
+      <div class="sec-body">
+        <div class="num-inputs">
+          <div class="num-input-row"><div class="num-bubble gray">1</div><input type="text" placeholder="Kendala pertama (opsional)"></div>
+          <div class="num-input-row"><div class="num-bubble gray">2</div><input type="text" placeholder="Kendala kedua (opsional)"></div>
+          <div class="num-input-row"><div class="num-bubble gray">3</div><input type="text" placeholder="Kendala ketiga (opsional)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PENCAPAIAN TAMBAHAN -->
+    <div class="sec-block">
+      <div class="sec-label"><div class="sec-label-dot"></div><span>Pencapaian Tambahan di Luar Rencana</span></div>
+      <div class="sec-body">
+        <div class="num-inputs">
+          <div class="num-input-row"><div class="num-bubble gray">1</div><input type="text" placeholder="Pencapaian pertama (opsional)"></div>
+          <div class="num-input-row"><div class="num-bubble gray">2</div><input type="text" placeholder="Pencapaian kedua (opsional)"></div>
+          <div class="num-input-row"><div class="num-bubble gray">3</div><input type="text" placeholder="Pencapaian ketiga (opsional)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KOMENTAR -->
+    <div class="sec-block">
+      <div class="sec-label"><div class="sec-label-dot"></div><span>Komentar &amp; Masukan dari Atasan</span></div>
+      <div class="sec-body">
+        <div class="field">
+          <label>Komentar Atasan Langsung</label>
+          <textarea rows="4" placeholder="Diisi oleh atasan langsung..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="submit-area">
+      <button class="btn-submit" onclick="showSuccess()">📤 Submit Laporan Bulanan</button>
+      <div class="submit-note">Pastikan semua data bertanda * sudah terisi sebelum submit.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PANEL 2 — GAP TRACKER
+════════════════════════════════════ -->
+<div class="form-panel" id="panel-gap">
+
+  <div class="form-card">
+    <div class="form-header">
+      <h2>IDP Gap &amp; Pencapaian Tracker</h2>
+      <p>Perbandingan Progress Bulan 1–6 · Champ Resto Indonesia</p>
+      <div class="session-badge">📊 Diisi setiap akhir sesi / review bulanan</div>
+    </div>
+
+    <!-- IDENTITAS -->
+    <div class="sec-block">
+      <div class="sec-label"><div class="sec-label-dot"></div><span>Identitas Kandidat</span></div>
+      <div class="sec-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Nama Kandidat <span class="req-star">*</span></label>
+            <input type="text" placeholder="Nama lengkap karyawan">
+          </div>
+          <div class="field">
+            <label>NIK <span class="req-star">*</span></label>
+            <input type="text" placeholder="Nomor Induk Karyawan">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Posisi / Jabatan <span class="req-star">*</span></label>
+            <input type="text" placeholder="e.g. BU Head MS Family">
+          </div>
+          <div class="field">
+            <label>Sesi yang Dilaporkan <span class="req-star">*</span></label>
+            <select>
+              <option>Sesi 1</option><option>Sesi 2</option><option>Sesi 3</option>
+              <option>Sesi 4</option><option>Sesi 5</option><option>Sesi 6</option>
+              <option>Rekap Akhir (Semua Sesi)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SESSION TRACKER -->
+    <div class="sec-block">
+      <div class="sec-label"><div class="sec-label-dot"></div><span>Status Sesi Program</span></div>
+      <div class="sec-body">
+        <div class="session-tracker">
+          <div class="sess-box done"><div class="sess-num green">1</div><div class="sess-label">Sesi</div><div class="sess-status done">✓ Selesai</div></div>
+          <div class="sess-box done"><div class="sess-num green">2</div><div class="sess-label">Sesi</div><div class="sess-status done">✓ Selesai</div></div>
+          <div class="sess-box done"><div class="sess-num green">3</div><div class="sess-label">Sesi</div><div class="sess-status done">✓ Selesai</div></div>
+          <div class="sess-box active"><div class="sess-num red">4</div><div class="sess-label">Sesi</div><div class="sess-status active">▶ Berjalan</div></div>
+          <div class="sess-box"><div class="sess-num">5</div><div class="sess-label">Sesi</div><div class="sess-status">– Belum</div></div>
+          <div class="sess-box"><div class="sess-num">6</div><div class="sess-label">Sesi</div><div class="sess-status">– Belum</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAP TABLE -->
+    <div class="sec-block">
+      <div class="sec-label"><div class="sec-label-dot"></div><span>Gap &amp; Pencapaian Per Kompetensi (Bulan 1–6)</span></div>
+      <div class="sec-body">
+
+        <!-- GAP ROW template x5 -->
+        <div id="gap-rows"></div>
+
+      </div>
+    </div>
+
+    <!-- EVALUASI AKHIR -->
+    <div class="sec-block">
+      <div class="sec-label"><div class="sec-label-dot"></div><span>Catatan Evaluasi Akhir</span></div>
+      <div class="sec-body">
+        <div class="field">
+          <label>Catatan &amp; Rekomendasi Tindak Lanjut</label>
+          <textarea rows="4" placeholder="Tuliskan rangkuman evaluasi dan rekomendasi pengembangan selanjutnya..."></textarea>
+        </div>
+        <div class="field">
+          <label>Rating Efektivitas Program <span class="req-star">*</span></label>
+          <select>
+            <option value="">— Pilih Rating —</option>
+            <option>1 – Tidak Efektif</option>
+            <option>2 – Kurang Efektif</option>
+            <option>3 – Cukup Efektif</option>
+            <option>4 – Efektif</option>
+            <option>5 – Sangat Efektif</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-area">
+      <button class="btn-submit" onclick="showSuccess()">📤 Submit Gap Tracker</button>
+      <div class="submit-note">Data akan disimpan dan dapat direkap oleh tim Human Capital.</div>
+    </div>
+  </div>
+
+</div><!-- end panel-gap -->
+</div><!-- end wrapper -->
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-box">
+    <div class="success-icon">✅</div>
+    <h3>Form Berhasil Dikirim!</h3>
+    <p>Terima kasih. Laporan Anda telah berhasil dikirimkan dan akan diproses oleh tim Human Capital CRI.</p>
+    <button class="btn-reset" onclick="document.getElementById('successOverlay').classList.remove('show')">Tutup</button>
+  </div>
+</div>
+
+<script>
+// Tab switch
+function switchTab(tab) {
+  document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-pill').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// Generate gap rows
+const gapContainer = document.getElementById('gap-rows');
+for (let i = 1; i <= 5; i++) {
+  const monthColors = ['C8102E','A00D24','8C0B20','780919','640817','500614'];
+  let monthHTML = '';
+  for (let m = 1; m <= 6; m++) {
+    monthHTML += `
+      <div class="gap-month-item">
+        <div class="gap-month-label" style="background:#${monthColors[m-1]}">Bln ${m}</div>
+        <div class="gap-month-inputs">
+          <input type="text" placeholder="Kondisi">
+          <input type="text" placeholder="Capaian">
+        </div>
+      </div>`;
+  }
+  gapContainer.innerHTML += `
+    <div class="gap-row">
+      <div class="gap-row-head">
+        <div class="gap-num">${i}</div>
+        <span>Gap / Kompetensi ${i}</span>
+      </div>
+      <div class="gap-row-body">
+        <div class="field">
+          <label>Nama Kompetensi / Gap</label>
+          <input type="text" placeholder="Tulis kompetensi yang dikembangkan..." style="border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;background:#fafbfc;width:100%;transition:border-color .15s;">
+        </div>
+        <div class="gap-month-grid">${monthHTML}</div>
+        <div class="kemahiran-row">
+          <div class="kemahiran-label">Tingkat Kemahiran Akhir:</div>
+          <select class="kemahiran-select" onchange="updateKemahiran(this)">
+            <option value="0">— Pilih —</option>
+            <option value="1">1 – Novice</option>
+            <option value="2">2 – Basic</option>
+            <option value="3">3 – Intermediate</option>
+            <option value="4">4 – Advanced</option>
+            <option value="5">5 – Expert</option>
+          </select>
+        </div>
+      </div>
+    </div>`;
+}
+
+function updateKemahiran(el) {
+  el.className = 'kemahiran-select';
+  const v = el.value;
+  if (v !== '0') el.classList.add('lv' + v);
+}
+
+function showSuccess() {
+  document.getElementById('successOverlay').classList.add('show');
+}
+</script>
+</body>
+</html>
