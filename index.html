@@ -333,17 +333,17 @@ body {
         <div class="field-row">
           <div class="field">
             <label>Nama Kandidat <span class="req-star">*</span></label>
-            <input type="text" placeholder="Nama lengkap karyawan">
+            <input type="text" id="m-nama" placeholder="Nama lengkap karyawan">
           </div>
           <div class="field">
             <label>NIK <span class="req-star">*</span></label>
-            <input type="text" placeholder="Nomor Induk Karyawan">
+            <input type="text" id="m-nik" placeholder="Nomor Induk Karyawan">
           </div>
         </div>
         <div class="field-row">
           <div class="field">
             <label>Posisi / Jabatan <span class="req-star">*</span></label>
-            <input type="text" placeholder="e.g. BU Head MS Family">
+            <input type="text" id="m-posisi" placeholder="e.g. BU Head MS Family">
           </div>
           <div class="field">
             <label>Level <span class="req-star">*</span></label>
@@ -358,11 +358,11 @@ body {
         <div class="field-row">
           <div class="field">
             <label>Divisi / Department <span class="req-star">*</span></label>
-            <input type="text" placeholder="e.g. Operation">
+            <input type="text" id="m-divisi" placeholder="e.g. Operation">
           </div>
           <div class="field">
             <label>Atasan Langsung <span class="req-star">*</span></label>
-            <input type="text" placeholder="Nama supervisor / mentor">
+            <input type="text" id="m-atasan" placeholder="Nama supervisor / mentor">
           </div>
         </div>
       </div>
@@ -430,7 +430,7 @@ body {
         <div class="field-row">
           <div class="field">
             <label>Realisasi Waktu Pelaksanaan <span class="req-star">*</span></label>
-            <input type="text" placeholder="Tanggal / periode pelaksanaan">
+            <input type="text" id="m-waktu" placeholder="Tanggal / periode pelaksanaan">
           </div>
           <div class="field">
             <label>Metode Pengembangan <span class="req-star">*</span></label>
@@ -490,14 +490,14 @@ body {
       <div class="sec-body">
         <div class="field">
           <label>Komentar Atasan Langsung</label>
-          <textarea rows="4" placeholder="Diisi oleh atasan langsung..."></textarea>
+          <textarea rows="4" id="m-komentar" placeholder="Diisi oleh atasan langsung..."></textarea>
         </div>
       </div>
     </div>
 
     <!-- SUBMIT -->
     <div class="submit-area">
-      <button class="btn-submit" onclick="showSuccess()">📤 Submit Laporan Bulanan</button>
+      <button class="btn-submit" id="btn-monthly" onclick="submitForm('monthly', event)">📤 Submit Laporan Bulanan</button>
       <div class="submit-note">Pastikan semua data bertanda * sudah terisi sebelum submit.</div>
     </div>
   </div>
@@ -522,21 +522,21 @@ body {
         <div class="field-row">
           <div class="field">
             <label>Nama Kandidat <span class="req-star">*</span></label>
-            <input type="text" placeholder="Nama lengkap karyawan">
+            <input type="text" id="gap-nama" placeholder="Nama lengkap karyawan">
           </div>
           <div class="field">
             <label>NIK <span class="req-star">*</span></label>
-            <input type="text" placeholder="Nomor Induk Karyawan">
+            <input type="text" id="gap-nik" placeholder="Nomor Induk Karyawan">
           </div>
         </div>
         <div class="field-row">
           <div class="field">
             <label>Posisi / Jabatan <span class="req-star">*</span></label>
-            <input type="text" placeholder="e.g. BU Head MS Family">
+            <input type="text" id="gap-posisi" placeholder="e.g. BU Head MS Family">
           </div>
           <div class="field">
             <label>Sesi yang Dilaporkan <span class="req-star">*</span></label>
-            <select>
+            <select id="gap-sesi">
               <option>Sesi 1</option><option>Sesi 2</option><option>Sesi 3</option>
               <option>Sesi 4</option><option>Sesi 5</option><option>Sesi 6</option>
               <option>Rekap Akhir (Semua Sesi)</option>
@@ -565,10 +565,7 @@ body {
     <div class="sec-block">
       <div class="sec-label"><div class="sec-label-dot"></div><span>Gap &amp; Pencapaian Per Kompetensi (Bulan 1–6)</span></div>
       <div class="sec-body">
-
-        <!-- GAP ROW template x5 -->
         <div id="gap-rows"></div>
-
       </div>
     </div>
 
@@ -578,11 +575,11 @@ body {
       <div class="sec-body">
         <div class="field">
           <label>Catatan &amp; Rekomendasi Tindak Lanjut</label>
-          <textarea rows="4" placeholder="Tuliskan rangkuman evaluasi dan rekomendasi pengembangan selanjutnya..."></textarea>
+          <textarea id="gap-catatan" rows="4" placeholder="Tuliskan rangkuman evaluasi dan rekomendasi pengembangan selanjutnya..."></textarea>
         </div>
         <div class="field">
           <label>Rating Efektivitas Program <span class="req-star">*</span></label>
-          <select>
+          <select id="gap-rating">
             <option value="">— Pilih Rating —</option>
             <option>1 – Tidak Efektif</option>
             <option>2 – Kurang Efektif</option>
@@ -595,8 +592,8 @@ body {
     </div>
 
     <div class="submit-area">
-      <button class="btn-submit" onclick="showSuccess()">📤 Submit Gap Tracker</button>
-      <div class="submit-note">Data akan disimpan dan dapat direkap oleh tim Human Capital.</div>
+      <button class="btn-submit" id="btn-gap" onclick="submitForm('gap', event)">📤 Submit Gap Tracker</button>
+      <div class="submit-note">Data akan tersimpan ke email & Google Sheets tim Human Capital.</div>
     </div>
   </div>
 
@@ -608,12 +605,14 @@ body {
   <div class="success-box">
     <div class="success-icon">✅</div>
     <h3>Form Berhasil Dikirim!</h3>
-    <p>Terima kasih. Laporan Anda telah berhasil dikirimkan dan akan diproses oleh tim Human Capital CRI.</p>
+    <p>Terima kasih. Data Anda telah berhasil dikirimkan ke tim Human Capital CRI dan masuk ke Google Sheets.</p>
     <button class="btn-reset" onclick="document.getElementById('successOverlay').classList.remove('show')">Tutup</button>
   </div>
 </div>
 
 <script>
+const FORMSPREE = 'https://formspree.io/f/xqeyknvn';
+
 // Tab switch
 function switchTab(tab) {
   document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
@@ -621,6 +620,91 @@ function switchTab(tab) {
   document.getElementById('panel-' + tab).classList.add('active');
   event.target.classList.add('active');
   window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// Collect all named inputs from a panel
+function collectData(panelId) {
+  const panel = document.getElementById('panel-' + panelId);
+  const data = { _form_type: panelId === 'monthly' ? 'Monthly Report' : 'Gap Tracker' };
+  panel.querySelectorAll('input[id], select[id], textarea[id]').forEach(el => {
+    data[el.id] = el.value;
+  });
+  // Also collect unnamed inputs by their label text
+  panel.querySelectorAll('.field').forEach(field => {
+    const label = field.querySelector('label');
+    const input = field.querySelector('input:not([id]), select:not([id]), textarea:not([id])');
+    if (label && input) {
+      const key = label.innerText.replace(' *','').trim().replace(/\s+/g,'_').toLowerCase();
+      data[key] = input.value;
+    }
+  });
+  // Numbered inputs
+  panel.querySelectorAll('.num-input-row').forEach((row, i) => {
+    const inp = row.querySelector('input');
+    const bubble = row.querySelector('.num-bubble');
+    if (inp && inp.value) {
+      const section = row.closest('.sec-block');
+      const secName = section ? section.querySelector('.sec-label span').innerText : 'item';
+      data[secName + '_' + (i+1)] = inp.value;
+    }
+  });
+  // Gap rows
+  panel.querySelectorAll('.gap-row').forEach((row, gi) => {
+    const nameInp = row.querySelector('input[style]');
+    if (nameInp) data['gap_' + (gi+1) + '_kompetensi'] = nameInp.value;
+    row.querySelectorAll('.gap-month-item').forEach((mi, mj) => {
+      const inputs = mi.querySelectorAll('input');
+      if (inputs[0]) data['gap_' + (gi+1) + '_bln' + (mj+1) + '_kondisi'] = inputs[0].value;
+      if (inputs[1]) data['gap_' + (gi+1) + '_bln' + (mj+1) + '_capaian'] = inputs[1].value;
+    });
+    const sel = row.querySelector('.kemahiran-select');
+    if (sel) data['gap_' + (gi+1) + '_kemahiran'] = sel.options[sel.selectedIndex].text;
+  });
+  // Target cards
+  panel.querySelectorAll('.target-card').forEach((card, ti) => {
+    const inputs = card.querySelectorAll('input, textarea');
+    if (inputs[0]) data['target_' + (ti+1) + '_area'] = inputs[0].value;
+    if (inputs[1]) data['target_' + (ti+1) + '_uraian'] = inputs[1].value;
+  });
+  return data;
+}
+
+async function submitForm(type, e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-' + type);
+
+  // Basic validation
+  const panel = document.getElementById('panel-' + type);
+  const required = panel.querySelectorAll('input[id][placeholder*="Nama"], input[id][placeholder*="NIK"]');
+  let valid = true;
+  required.forEach(inp => { if (!inp.value.trim()) { inp.style.borderColor='#c8102e'; valid = false; } else { inp.style.borderColor=''; } });
+  if (!valid) { alert('Mohon isi semua field yang wajib (*)'); return; }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Mengirim...';
+
+  const payload = collectData(type);
+
+  try {
+    const res = await fetch(FORMSPREE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      document.getElementById('successOverlay').classList.add('show');
+      // Reset form fields
+      panel.querySelectorAll('input:not([type=button]), textarea').forEach(el => el.value = '');
+    } else {
+      const err = await res.json();
+      alert('Gagal mengirim: ' + (err.error || 'Coba lagi.'));
+    }
+  } catch(err) {
+    alert('Koneksi gagal. Periksa internet Anda dan coba lagi.');
+  }
+
+  btn.disabled = false;
+  btn.textContent = type === 'monthly' ? '📤 Submit Laporan Bulanan' : '📤 Submit Gap Tracker';
 }
 
 // Generate gap rows
@@ -669,10 +753,6 @@ function updateKemahiran(el) {
   el.className = 'kemahiran-select';
   const v = el.value;
   if (v !== '0') el.classList.add('lv' + v);
-}
-
-function showSuccess() {
-  document.getElementById('successOverlay').classList.add('show');
 }
 </script>
 </body>
