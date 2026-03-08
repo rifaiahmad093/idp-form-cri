@@ -612,6 +612,7 @@ body {
 
 <script>
 const FORMSPREE = 'https://formspree.io/f/xqeyknvn';
+const GSHEET  = 'https://script.google.com/macros/s/AKfycbxz_LaaPuOhLs7P9vGZ_zOZi5a6Iv1k058MKY-0ghYp1pbxIAQ4BUq_eLJY5jOweSxaXA/exec';
 
 // Tab switch
 function switchTab(tab) {
@@ -686,19 +687,28 @@ async function submitForm(type, e) {
   const payload = collectData(type);
 
   try {
-    const res = await fetch(FORMSPREE, {
+    // Send to Google Sheets (primary)
+    const gsRes = fetch(GSHEET, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    // Send to Formspree (email notification)
+    const fsRes = fetch(FORMSPREE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify(payload)
     });
-    if (res.ok) {
-      document.getElementById('successOverlay').classList.add('show');
-      // Reset form fields
-      panel.querySelectorAll('input:not([type=button]), textarea').forEach(el => el.value = '');
-    } else {
-      const err = await res.json();
-      alert('Gagal mengirim: ' + (err.error || 'Coba lagi.'));
-    }
+
+    await Promise.all([gsRes, fsRes]);
+
+    // Show success & reset
+    document.getElementById('successOverlay').classList.add('show');
+    panel.querySelectorAll('input:not([type=button]), textarea').forEach(el => el.value = '');
+    panel.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+
   } catch(err) {
     alert('Koneksi gagal. Periksa internet Anda dan coba lagi.');
   }
