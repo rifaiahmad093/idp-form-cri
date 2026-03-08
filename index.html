@@ -3,766 +3,1079 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IDP Digital Form — Champ Resto Indonesia</title>
+<title>Sistem IDP Digital — PT. Champ Resto Indonesia</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword }
+    from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+  import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where, orderBy, serverTimestamp }
+    from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+  // ════════════════════════════════════════
+  // 🔥 FIREBASE CONFIG — GANTI DENGAN MILIK ANDA
+  // ════════════════════════════════════════
+  const firebaseConfig = {
+    apiKey: "AIzaSyDfr9Dmy7k9LMyeKdLrzgX81uy9vYxYsY4",
+    authDomain: "idp-cri.firebaseapp.com",
+    projectId: "idp-cri",
+    storageBucket: "idp-cri.firebasestorage.app",
+    messagingSenderId: "311389733008",
+    appId: "1:311389733008:web:f1c07e2ba7a7258aea1815",
+    measurementId: "G-N827H99CQ3"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Expose ke global
+  window._auth = auth;
+  window._db = db;
+  window._firebaseFns = {
+    signInWithEmailAndPassword, signOut, onAuthStateChanged,
+    createUserWithEmailAndPassword, doc, setDoc, getDoc,
+    collection, getDocs, query, where, orderBy, serverTimestamp
+  };
+
+  // Auth state listener
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        window._currentUser = { uid: user.uid, email: user.email, ...userData };
+        showApp(userData.role);
+      }
+    } else {
+      window._currentUser = null;
+      showLogin();
+    }
+  });
+</script>
+
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-
 :root {
-  --red: #C8102E;
-  --red-dark: #a00d24;
-  --dark: #0f0f1a;
-  --dark2: #1a1a2e;
-  --gray: #f4f5f7;
-  --border: #e2e5eb;
-  --text: #1a1a2e;
-  --muted: #7a7d8a;
+  --red: #C8102E; --red-dark: #9e0c24; --red-light: #f9e8eb;
+  --navy: #0f1f3d; --navy2: #162447;
+  --gold: #b8932a; --gold-light: #f5ecd4;
+  --white: #fff; --off: #f7f8fa;
+  --border: #e4e7ed; --text: #1a1f2e; --muted: #6b7280;
+  --sidebar-w: 240px;
 }
-
 * { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Source Sans 3',sans-serif; background:var(--off); color:var(--text); font-size:14px; }
 
-body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  background: #eef0f5;
-  color: var(--text);
-  min-height: 100vh;
+/* ── LOGIN PAGE ── */
+#login-page {
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 50%, #1e3a6e 100%);
 }
-
-/* TOP BAR */
-.topbar {
-  background: var(--dark2);
-  padding: 0 0 0 0;
-  position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 2px 16px rgba(0,0,0,.25);
+.login-box {
+  background:#fff; border-radius:16px; padding:40px 44px;
+  width:100%; max-width:420px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
 }
-.topbar-inner {
-  max-width: 760px; margin: 0 auto;
-  display: flex; align-items: center; gap: 16px;
-  padding: 14px 20px;
-}
-.logo-dot { width: 36px; height: 36px; border-radius: 50%; background: var(--red); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:11px; flex-shrink:0; }
-.topbar-title { flex:1; }
-.topbar-title h1 { font-size:13px; font-weight:700; color:#fff; }
-.topbar-title p { font-size:10px; color:#666; margin-top:1px; }
-.tab-pills { display:flex; gap:4px; }
-.tab-pill { padding:7px 14px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; color:#666; transition:all .2s; border:none; background:transparent; font-family:'Plus Jakarta Sans',sans-serif; letter-spacing:.3px; }
-.tab-pill.active { background:var(--red); color:#fff; }
-.tab-pill:hover:not(.active) { background:rgba(255,255,255,.08); color:#ccc; }
-
-/* WRAPPER */
-.wrapper { max-width: 760px; margin: 0 auto; padding: 28px 16px 60px; }
-
-/* FORM PANEL */
-.form-panel { display:none; }
-.form-panel.active { display:block; }
-
-/* FORM CARD */
-.form-card {
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 16px rgba(0,0,0,.07);
-  margin-bottom: 12px;
-}
-
-/* FORM HEADER */
-.form-header {
-  background: var(--red);
-  padding: 24px 28px 20px;
-  position: relative;
-  overflow: hidden;
-}
-.form-header::before {
-  content:'';
-  position:absolute; right:-40px; top:-40px;
-  width:160px; height:160px; border-radius:50%;
-  background:rgba(255,255,255,.06);
-}
-.form-header h2 { font-size:18px; font-weight:800; color:#fff; letter-spacing:.3px; position:relative; }
-.form-header p { font-size:11px; color:rgba(255,255,255,.65); margin-top:4px; position:relative; }
-.session-badge {
-  display:inline-flex; align-items:center; gap:6px;
-  background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25);
-  border-radius:20px; padding:4px 12px; margin-top:10px;
-  font-size:11px; color:#fff; font-weight:600; position:relative;
-}
-
-/* SECTION BLOCK */
-.sec-block { border-bottom: 1px solid var(--border); }
-.sec-block:last-child { border-bottom: none; }
-.sec-label {
-  display:flex; align-items:center; gap:10px;
-  padding: 14px 28px 12px;
-  background: var(--gray);
-  border-bottom: 1px solid var(--border);
-}
-.sec-label-dot { width:8px; height:8px; border-radius:50%; background:var(--red); flex-shrink:0; }
-.sec-label span { font-size:10px; font-weight:800; color:var(--red); letter-spacing:1.5px; text-transform:uppercase; }
-.sec-body { padding: 20px 28px; display:flex; flex-direction:column; gap:16px; }
-
-/* FIELD */
-.field { display:flex; flex-direction:column; gap:6px; }
-.field-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-.field label {
-  font-size:11px; font-weight:700; color:var(--muted);
-  letter-spacing:.5px; text-transform:uppercase;
-  display:flex; align-items:center; gap:6px;
-}
-.req-star { color:var(--red); font-size:13px; line-height:1; }
-
-.field input,
-.field select,
-.field textarea {
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 13px;
-  color: var(--text);
-  background: #fafbfc;
-  outline: none;
-  transition: border-color .15s, box-shadow .15s, background .15s;
-  width: 100%;
-}
-.field input:focus,
-.field select:focus,
-.field textarea:focus {
-  border-color: var(--red);
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(200,16,46,.08);
-}
-.field textarea { resize:vertical; min-height:72px; line-height:1.6; }
-.field select { cursor:pointer; }
-
-/* TARGET CARDS */
-.target-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
-.target-card {
-  border: 1.5px solid var(--border);
-  border-radius:10px; overflow:hidden;
-}
-.target-card-head {
-  background:var(--red); padding:8px 12px;
-  font-size:10px; font-weight:800; color:#fff; letter-spacing:1px; text-transform:uppercase;
-}
-.target-card-body { padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
-.target-card-body input,
-.target-card-body textarea {
-  border:1.5px solid var(--border); border-radius:6px;
-  padding:8px 10px; font-size:12px; font-family:'Plus Jakarta Sans',sans-serif;
-  outline:none; width:100%; background:#fafbfc; transition:border-color .15s;
-}
-.target-card-body input:focus,
-.target-card-body textarea:focus { border-color:var(--red); background:#fff; }
-.target-card-body textarea { min-height:60px; resize:none; line-height:1.5; }
-.target-card-body .mini-label { font-size:9px; font-weight:700; color:var(--muted); letter-spacing:.8px; text-transform:uppercase; }
-
-/* NUMBERED INPUTS */
-.num-inputs { display:flex; flex-direction:column; gap:8px; }
-.num-input-row { display:flex; align-items:center; gap:10px; }
-.num-bubble {
-  width:26px; height:26px; border-radius:50%;
-  background:var(--red); color:#fff;
-  font-size:11px; font-weight:800;
-  display:flex; align-items:center; justify-content:center;
-  flex-shrink:0;
-}
-.num-bubble.gray { background:#dde0e8; color:var(--muted); }
-.num-input-row input {
-  flex:1; border:1.5px solid var(--border); border-radius:8px;
-  padding:9px 14px; font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:13px; outline:none; background:#fafbfc; transition:border-color .15s;
-}
-.num-input-row input:focus { border-color:var(--red); background:#fff; }
-
-/* GAP TABLE */
-.gap-row {
-  border:1.5px solid var(--border); border-radius:10px;
-  overflow:hidden; margin-bottom:8px;
-}
-.gap-row:last-child { margin-bottom:0; }
-.gap-row-head {
-  display:flex; align-items:center; gap:10px;
-  background:var(--gray); padding:10px 16px;
-  border-bottom:1px solid var(--border);
-}
-.gap-num {
-  width:28px; height:28px; border-radius:50%;
-  background:var(--red); color:#fff;
-  font-size:12px; font-weight:800;
-  display:flex; align-items:center; justify-content:center;
-  flex-shrink:0;
-}
-.gap-row-head span { font-size:12px; font-weight:700; color:var(--text); }
-.gap-row-body { padding:14px 16px; display:flex; flex-direction:column; gap:10px; }
-.gap-month-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
-.gap-month-item { display:flex; flex-direction:column; gap:4px; }
-.gap-month-label {
-  font-size:9px; font-weight:800; color:#fff;
-  background:var(--red); text-align:center;
-  padding:3px 0; border-radius:4px 4px 0 0;
-  letter-spacing:.5px;
-}
-.gap-month-inputs { display:flex; flex-direction:column; gap:3px; }
-.gap-month-inputs input {
-  border:1px solid var(--border); border-radius:0 0 4px 4px;
-  padding:5px 7px; font-size:11px; font-family:'Plus Jakarta Sans',sans-serif;
-  outline:none; background:#fafbfc; width:100%; transition:border-color .15s;
-}
-.gap-month-inputs input:focus { border-color:var(--red); background:#fff; }
-.gap-month-inputs input::placeholder { color:#ccc; font-size:10px; }
-.kemahiran-row { display:flex; align-items:center; gap:10px; }
-.kemahiran-label { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; white-space:nowrap; }
-.kemahiran-select {
-  flex:1; border:1.5px solid var(--border); border-radius:8px;
-  padding:8px 12px; font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:12px; font-weight:700; outline:none; cursor:pointer;
-  transition:all .15s; background:#fafbfc;
-}
-.kemahiran-select:focus { border-color:var(--red); }
-.kemahiran-select.lv1 { background:#fff0f0; color:#b91c1c; border-color:#f0c0c0; }
-.kemahiran-select.lv2 { background:#fffbea; color:#92400e; border-color:#f0e0a0; }
-.kemahiran-select.lv3 { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
-.kemahiran-select.lv4 { background:#f0fdf4; color:#065f46; border-color:#a7f3d0; }
-.kemahiran-select.lv5 { background:#f5f3ff; color:#5b21b6; border-color:#ddd6fe; }
-
-/* SUBMIT */
-.submit-area { padding: 24px 28px; background:var(--gray); border-top:1px solid var(--border); }
-.btn-submit {
-  width:100%; padding:14px; border:none; border-radius:10px;
-  background:var(--red); color:#fff;
-  font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:800;
-  cursor:pointer; letter-spacing:.5px;
-  transition:background .15s, transform .1s, box-shadow .15s;
-  box-shadow: 0 4px 14px rgba(200,16,46,.3);
-}
-.btn-submit:hover { background:var(--red-dark); transform:translateY(-1px); box-shadow:0 6px 20px rgba(200,16,46,.35); }
-.btn-submit:active { transform:translateY(0); }
-.submit-note { font-size:11px; color:var(--muted); text-align:center; margin-top:10px; }
-
-/* SUCCESS */
-.success-overlay {
-  display:none; position:fixed; inset:0;
-  background:rgba(15,15,26,.85); z-index:999;
-  align-items:center; justify-content:center;
-  backdrop-filter:blur(4px);
-}
-.success-overlay.show { display:flex; }
-.success-box {
-  background:#fff; border-radius:16px;
-  padding:40px 48px; text-align:center;
-  max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,.3);
-  animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes popIn { from{transform:scale(.8);opacity:0} to{transform:scale(1);opacity:1} }
-.success-icon { font-size:52px; margin-bottom:16px; }
-.success-box h3 { font-size:20px; font-weight:800; color:var(--text); margin-bottom:8px; }
-.success-box p { font-size:13px; color:var(--muted); line-height:1.6; }
-.btn-reset {
-  margin-top:20px; padding:12px 32px; border:none; border-radius:8px;
-  background:var(--red); color:#fff; font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:13px; font-weight:700; cursor:pointer; transition:background .15s;
-}
-.btn-reset:hover { background:var(--red-dark); }
-
-/* SESSION TRACKER */
-.session-tracker {
-  display:grid; grid-template-columns:repeat(6,1fr); gap:6px;
+.login-logo { text-align:center; margin-bottom:28px; }
+.login-logo-mark {
+  width:56px; height:56px; border-radius:12px; background:var(--red);
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:#fff;
   margin-bottom:12px;
 }
-.sess-box {
-  background:#fff; border-radius:8px; padding:10px 8px;
-  text-align:center; border:1.5px solid var(--border);
-  box-shadow:0 1px 4px rgba(0,0,0,.05);
+.login-logo h1 { font-family:'Playfair Display',serif; font-size:20px; color:var(--text); }
+.login-logo p { font-size:12px; color:var(--muted); margin-top:3px; }
+.login-divider { height:1px; background:var(--border); margin:20px 0; }
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; }
+.form-group input {
+  width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:8px;
+  font-family:'Source Sans 3',sans-serif; font-size:14px; outline:none; transition:border-color .15s;
 }
-.sess-box.done { border-color:#a7f3d0; background:#f0fdf4; }
-.sess-box.active { border-color:var(--red); background:#fff0f0; }
-.sess-num { font-size:18px; font-weight:800; color:var(--text); }
-.sess-num.red { color:var(--red); }
-.sess-num.green { color:#065f46; }
-.sess-label { font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-top:2px; }
-.sess-status { font-size:10px; font-weight:700; margin-top:3px; color:var(--muted); }
-.sess-status.done { color:#065f46; }
-.sess-status.active { color:var(--red); }
+.form-group input:focus { border-color:var(--red); }
+.btn-login {
+  width:100%; padding:13px; border:none; border-radius:8px;
+  background:var(--red); color:#fff; font-family:'Source Sans 3',sans-serif;
+  font-size:14px; font-weight:700; cursor:pointer; margin-top:4px;
+  box-shadow:0 4px 14px rgba(200,16,46,.3); transition:background .15s;
+}
+.btn-login:hover { background:var(--red-dark); }
+.login-error { background:#fff0f0; border:1px solid #f0c0c0; border-radius:6px; padding:10px 14px; font-size:12px; color:var(--red); margin-top:12px; display:none; }
+.login-note { font-size:11px; color:var(--muted); text-align:center; margin-top:16px; line-height:1.5; }
 
-@media (max-width:600px) {
+/* ── APP LAYOUT ── */
+#app-page { display:none; }
+.layout { display:flex; min-height:100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  width:var(--sidebar-w); background:var(--navy); min-height:100vh;
+  position:fixed; left:0; top:0; z-index:50;
+  display:flex; flex-direction:column;
+  box-shadow:4px 0 20px rgba(0,0,0,.15);
+}
+.sidebar-logo { padding:22px 20px 18px; border-bottom:1px solid rgba(255,255,255,.08); }
+.logo-mark { width:40px; height:40px; border-radius:8px; background:var(--red); display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:16px; font-weight:700; color:#fff; margin-bottom:8px; }
+.logo-name { font-size:11px; font-weight:700; color:#fff; line-height:1.3; }
+.logo-sub { font-size:10px; color:rgba(255,255,255,.4); margin-top:2px; letter-spacing:.5px; text-transform:uppercase; }
+.sidebar-section { padding:14px 12px 6px; }
+.sidebar-section-label { font-size:9px; font-weight:700; color:rgba(255,255,255,.3); letter-spacing:1.5px; text-transform:uppercase; padding:0 8px; margin-bottom:6px; }
+.nav-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; cursor:pointer; transition:all .15s; color:rgba(255,255,255,.55); font-size:13px; font-weight:500; margin-bottom:2px; }
+.nav-item:hover { background:rgba(255,255,255,.06); color:rgba(255,255,255,.9); }
+.nav-item.active { background:var(--red); color:#fff; box-shadow:0 4px 12px rgba(200,16,46,.35); }
+.nav-icon { font-size:15px; width:20px; text-align:center; flex-shrink:0; }
+.nav-badge { margin-left:auto; background:var(--gold); color:#fff; font-size:9px; font-weight:700; padding:2px 6px; border-radius:10px; }
+.sidebar-footer { margin-top:auto; padding:14px 20px; border-top:1px solid rgba(255,255,255,.08); }
+.user-card { display:flex; align-items:center; gap:10px; cursor:pointer; }
+.user-avatar { width:34px; height:34px; border-radius:50%; background:var(--red); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; flex-shrink:0; }
+.user-name { font-size:12px; font-weight:600; color:#fff; }
+.user-role { font-size:10px; color:rgba(255,255,255,.4); }
+.btn-logout { font-size:10px; color:rgba(255,255,255,.4); background:none; border:none; cursor:pointer; margin-top:6px; font-family:'Source Sans 3',sans-serif; padding:0; display:block; }
+.btn-logout:hover { color:var(--red); }
+
+/* MAIN */
+.main { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; }
+.topbar { background:#fff; border-bottom:1px solid var(--border); padding:0 28px; height:58px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:40; }
+.topbar-left h2 { font-family:'Playfair Display',serif; font-size:17px; font-weight:600; }
+.topbar-left p { font-size:11px; color:var(--muted); margin-top:1px; }
+.topbar-right { display:flex; align-items:center; gap:10px; }
+.tbtn { padding:7px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:none; font-family:'Source Sans 3',sans-serif; transition:all .15s; }
+.tbtn-outline { background:#fff; border:1.5px solid var(--border); color:var(--text); }
+.tbtn-outline:hover { border-color:var(--red); color:var(--red); }
+.tbtn-primary { background:var(--red); color:#fff; box-shadow:0 2px 8px rgba(200,16,46,.25); }
+.tbtn-primary:hover { background:var(--red-dark); }
+.content { padding:24px 28px; flex:1; }
+.page { display:none; }
+.page.active { display:block; }
+
+/* CARDS */
+.card { background:#fff; border-radius:10px; border:1px solid var(--border); box-shadow:0 1px 4px rgba(0,0,0,.04); }
+.card-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); }
+.card-header h3 { font-size:14px; font-weight:700; }
+.card-body { padding:20px; }
+.sec-label { font-size:10px; font-weight:700; color:var(--red); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+
+/* GRID */
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+.g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+
+/* STAT */
+.stat-card { background:#fff; border-radius:10px; padding:18px 20px; border:1px solid var(--border); box-shadow:0 1px 4px rgba(0,0,0,.04); }
+.stat-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px; }
+.stat-icon { width:38px; height:38px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:17px; }
+.si-red { background:var(--red-light); } .si-navy { background:#e8edf5; } .si-gold { background:var(--gold-light); } .si-green { background:#e8f5ee; }
+.stat-val { font-size:24px; font-weight:700; color:var(--text); font-family:'Playfair Display',serif; }
+.stat-lbl { font-size:12px; color:var(--muted); margin-top:2px; }
+.badge { display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; }
+.bg { background:#e8f5ee; color:#1a7f4f; } .br { background:var(--red-light); color:var(--red); }
+.bo { background:var(--gold-light); color:var(--gold); } .bb { background:#e8edf5; color:var(--navy); }
+.bgr { background:#f0f2f5; color:var(--muted); }
+
+/* TABLE */
+.tbl-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+thead th { background:var(--off); padding:9px 14px; text-align:left; font-size:10px; font-weight:700; color:var(--muted); letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid var(--border); }
+tbody td { padding:11px 14px; border-bottom:1px solid #f0f2f5; font-size:13px; }
+tbody tr:last-child td { border-bottom:none; }
+tbody tr:hover td { background:var(--off); }
+
+/* FORM */
+.frow { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+.frow.f1 { grid-template-columns:1fr; }
+.frow.f3 { grid-template-columns:1fr 1fr 1fr; }
+.field { display:flex; flex-direction:column; gap:5px; }
+.field label { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; }
+.field input,.field select,.field textarea { border:1.5px solid var(--border); border-radius:7px; padding:9px 12px; font-family:'Source Sans 3',sans-serif; font-size:13px; outline:none; transition:border-color .15s; background:#fafbfc; width:100%; }
+.field input:focus,.field select:focus,.field textarea:focus { border-color:var(--red); background:#fff; }
+.field textarea { resize:vertical; min-height:70px; line-height:1.5; }
+
+/* TARGET CARDS */
+.target-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:14px; }
+.target-card { border:1.5px solid var(--border); border-radius:9px; overflow:hidden; }
+.target-head { background:var(--navy); padding:10px 14px; font-size:12px; font-weight:700; color:#fff; }
+.target-body { padding:12px 14px; display:flex; flex-direction:column; gap:8px; }
+.target-body .mini-lbl { font-size:9px; font-weight:700; color:var(--muted); letter-spacing:.8px; text-transform:uppercase; }
+.target-body input,.target-body textarea { border:1.5px solid var(--border); border-radius:6px; padding:7px 10px; font-size:12px; font-family:'Source Sans 3',sans-serif; outline:none; width:100%; background:#fafbfc; transition:border-color .15s; }
+.target-body input:focus,.target-body textarea:focus { border-color:var(--red); }
+.target-body textarea { min-height:56px; resize:none; line-height:1.4; }
+
+/* NUMBERED */
+.num-list { display:flex; flex-direction:column; gap:7px; }
+.num-row { display:flex; align-items:center; gap:9px; }
+.num-dot { width:24px; height:24px; border-radius:50%; background:var(--red); color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.num-dot.gray { background:#dde0e8; color:var(--muted); }
+.num-row input { flex:1; border:1.5px solid var(--border); border-radius:7px; padding:8px 12px; font-size:13px; font-family:'Source Sans 3',sans-serif; outline:none; background:#fafbfc; transition:border-color .15s; }
+.num-row input:focus { border-color:var(--red); }
+
+/* GAP ROWS */
+.gap-comp-row { border:1.5px solid var(--border); border-radius:9px; overflow:hidden; margin-bottom:10px; }
+.gap-comp-head { background:var(--off); padding:10px 14px; display:flex; gap:10px; align-items:center; border-bottom:1px solid var(--border); }
+.gap-comp-num { width:26px; height:26px; border-radius:50%; background:var(--red); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.gap-comp-body { padding:12px 14px; }
+.month-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-top:10px; }
+.month-col { display:flex; flex-direction:column; gap:3px; }
+.month-col-head { font-size:9px; font-weight:700; color:#fff; text-align:center; padding:4px 0; border-radius:4px; }
+.month-col input { border:1px solid var(--border); border-radius:4px; padding:5px 6px; font-size:11px; font-family:'Source Sans 3',sans-serif; outline:none; background:#fafbfc; text-align:center; transition:border-color .15s; }
+.month-col input:focus { border-color:var(--red); }
+.kemahiran-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
+.kemahiran-lbl { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; white-space:nowrap; }
+.kemahiran-sel { flex:1; border:1.5px solid var(--border); border-radius:7px; padding:7px 10px; font-family:'Source Sans 3',sans-serif; font-size:12px; font-weight:700; outline:none; cursor:pointer; background:#fafbfc; transition:all .15s; }
+.lv1 { background:#fce8e8!important; color:#b91c1c!important; border-color:#f0c0c0!important; }
+.lv2 { background:#fffbea!important; color:#92400e!important; border-color:#f0e0a0!important; }
+.lv3 { background:#eff6ff!important; color:#1d4ed8!important; border-color:#bfdbfe!important; }
+.lv4 { background:#f0fdf4!important; color:#065f46!important; border-color:#a7f3d0!important; }
+.lv5 { background:#f5f3ff!important; color:#5b21b6!important; border-color:#ddd6fe!important; }
+
+/* SUBMIT */
+.submit-area { background:var(--off); border-top:1px solid var(--border); padding:16px 20px; display:flex; gap:10px; align-items:center; justify-content:flex-end; }
+.btn-save { padding:10px 24px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; border:none; font-family:'Source Sans 3',sans-serif; background:var(--red); color:#fff; box-shadow:0 2px 8px rgba(200,16,46,.25); transition:all .15s; }
+.btn-save:hover { background:var(--red-dark); }
+.btn-save:disabled { opacity:.6; cursor:not-allowed; }
+.save-note { font-size:11px; color:var(--muted); }
+
+/* HR DASHBOARD */
+.employee-row { display:flex; align-items:center; gap:14px; padding:12px 16px; border-bottom:1px solid #f0f2f5; transition:background .1s; cursor:pointer; }
+.employee-row:last-child { border-bottom:none; }
+.employee-row:hover { background:var(--off); }
+.emp-avatar { width:38px; height:38px; border-radius:50%; background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; }
+.emp-name { font-size:13px; font-weight:700; }
+.emp-pos { font-size:11px; color:var(--muted); margin-top:2px; }
+.emp-progress { flex:1; text-align:right; }
+.prog-bar { height:6px; background:#f0f2f5; border-radius:6px; overflow:hidden; width:80px; margin-left:auto; margin-bottom:3px; }
+.prog-fill { height:100%; border-radius:6px; background:linear-gradient(90deg,var(--red),#e84060); }
+.prog-pct { font-size:10px; color:var(--muted); font-weight:600; }
+
+/* APPROVE SECTION */
+.approve-card { border-left:3px solid var(--gold); background:#fffdf5; border-radius:0 8px 8px 0; padding:14px 16px; margin-bottom:10px; }
+.approve-card.approved { border-left-color:#1a7f4f; background:#f0fdf4; }
+.approve-card.rejected { border-left-color:var(--red); background:var(--red-light); }
+.approve-name { font-size:13px; font-weight:700; }
+.approve-meta { font-size:11px; color:var(--muted); margin-top:2px; }
+.approve-actions { display:flex; gap:8px; margin-top:10px; }
+.btn-approve { padding:6px 16px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; border:none; font-family:'Source Sans 3',sans-serif; }
+.btn-ok { background:#e8f5ee; color:#1a7f4f; }
+.btn-ok:hover { background:#1a7f4f; color:#fff; }
+.btn-reject { background:var(--red-light); color:var(--red); }
+.btn-reject:hover { background:var(--red); color:#fff; }
+
+/* WELCOME BANNER */
+.welcome { background:linear-gradient(135deg,var(--navy),var(--navy2),#1e3a6e); border-radius:12px; padding:24px 28px; margin-bottom:20px; position:relative; overflow:hidden; display:flex; justify-content:space-between; align-items:center; }
+.welcome::before { content:''; position:absolute; right:-50px; top:-50px; width:200px; height:200px; border-radius:50%; background:rgba(200,16,46,.1); }
+.welcome h1 { font-family:'Playfair Display',serif; font-size:20px; color:#fff; margin-bottom:5px; position:relative; }
+.welcome p { font-size:13px; color:rgba(255,255,255,.6); position:relative; }
+.welcome-stats { display:flex; gap:24px; position:relative; }
+.ws-item { text-align:center; }
+.ws-val { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:#fff; }
+.ws-lbl { font-size:9px; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.5px; }
+
+/* PROGRESS RING */
+.ring-wrap { position:relative; }
+.ring { transform:rotate(-90deg); }
+.ring-bg { fill:none; stroke:rgba(255,255,255,.1); stroke-width:8; }
+.ring-fill { fill:none; stroke:var(--red); stroke-width:8; stroke-linecap:round; stroke-dasharray:283; transition:stroke-dashoffset 1s; }
+.ring-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.ring-pct { font-size:20px; font-weight:700; color:#fff; font-family:'Playfair Display',serif; }
+.ring-lbl { font-size:9px; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.5px; }
+
+/* TOAST */
+.toast { position:fixed; bottom:24px; right:24px; background:var(--navy); color:#fff; padding:12px 20px; border-radius:8px; font-size:13px; font-weight:600; z-index:999; transform:translateY(60px); opacity:0; transition:all .3s; box-shadow:0 4px 20px rgba(0,0,0,.2); }
+.toast.show { transform:translateY(0); opacity:1; }
+.toast.success { background:#1a7f4f; }
+.toast.error { background:var(--red); }
+
+/* LOADING */
+.loading { display:flex; align-items:center; justify-content:center; padding:40px; color:var(--muted); font-size:13px; gap:10px; }
+.spinner { width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--red); border-radius:50%; animation:spin .6s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* HR ONLY */
+.hr-only { display:none; }
+
+@media(max-width:900px) {
+  .g4 { grid-template-columns:1fr 1fr; }
+  .g3,.frow.f3 { grid-template-columns:1fr; }
   .target-grid { grid-template-columns:1fr; }
-  .gap-month-grid { grid-template-columns:repeat(3,1fr); }
-  .field-row { grid-template-columns:1fr; }
-  .session-tracker { grid-template-columns:repeat(3,1fr); }
-  .topbar-inner { flex-wrap:wrap; }
-  .tab-pills { width:100%; }
-  .tab-pill { flex:1; text-align:center; }
+  .month-grid { grid-template-columns:repeat(3,1fr); }
+  .frow { grid-template-columns:1fr; }
 }
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
-<div class="topbar">
-  <div class="topbar-inner">
-    <div class="logo-dot">CRI</div>
-    <div class="topbar-title">
-      <h1>IDP Digital Form</h1>
-      <p>Champ Resto Indonesia · Human Capital</p>
+<!-- ══════════ LOGIN PAGE ══════════ -->
+<div id="login-page">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-mark">CRI</div>
+      <h1>Sistem IDP Digital</h1>
+      <p>PT. Champ Resto Indonesia · Human Capital</p>
     </div>
-    <div class="tab-pills">
-      <button class="tab-pill active" onclick="switchTab('monthly')">Monthly Report</button>
-      <button class="tab-pill" onclick="switchTab('gap')">Gap Tracker</button>
+    <div class="login-divider"></div>
+    <div class="form-group">
+      <label>Email Karyawan</label>
+      <input type="email" id="login-email" placeholder="nama@cri.co.id" autocomplete="email">
     </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Masuk ke Sistem IDP</button>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-note">Belum punya akun? Hubungi tim Human Capital CRI untuk mendapatkan akses.</div>
   </div>
 </div>
 
-<div class="wrapper">
+<!-- ══════════ APP PAGE ══════════ -->
+<div id="app-page">
+<div class="layout">
 
-<!-- ═══════════════════════════════════
-     PANEL 1 — MONTHLY REPORT
-════════════════════════════════════ -->
-<div class="form-panel active" id="panel-monthly">
-
-  <div class="form-card">
-    <!-- HEADER -->
-    <div class="form-header">
-      <h2>Monthly Individual Development Report</h2>
-      <p>Individual Development Program (IDP) · /CRI/2026/OPS-001</p>
-      <div class="session-badge">📋 Isi setiap bulan sesuai sesi yang berjalan</div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">CRI</div>
+      <div class="logo-name">PT. Champ Resto Indonesia</div>
+      <div class="logo-sub">Program IDP Digital</div>
     </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Menu Utama</div>
+      <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item" onclick="nav('profil',this)"><span class="nav-icon">👤</span> Profil Saya</div>
+      <div class="nav-item" onclick="nav('rencana',this)"><span class="nav-icon">🎯</span> Rencana Pengembangan</div>
+      <div class="nav-item" onclick="nav('laporan',this)"><span class="nav-icon">📋</span> Laporan Bulanan</div>
+      <div class="nav-item" onclick="nav('gap',this)"><span class="nav-icon">📈</span> Gap Analysis</div>
+    </div>
+    <div class="sidebar-section hr-only" id="hr-menu">
+      <div class="sidebar-section-label">HR Admin</div>
+      <div class="nav-item" onclick="nav('hr-dashboard',this)"><span class="nav-icon">🏢</span> Dashboard HR</div>
+      <div class="nav-item" onclick="nav('hr-karyawan',this)"><span class="nav-icon">👥</span> Semua Karyawan</div>
+      <div class="nav-item" onclick="nav('hr-approve',this)"><span class="nav-icon">✅</span> Approve Laporan <span class="nav-badge" id="pending-count">0</span></div>
+      <div class="nav-item" onclick="nav('hr-register',this)"><span class="nav-icon">➕</span> Daftarkan Karyawan</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebar-avatar">?</div>
+        <div>
+          <div class="user-name" id="sidebar-name">Loading...</div>
+          <div class="user-role" id="sidebar-role">—</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">⬅ Keluar</button>
+    </div>
+  </aside>
 
-    <!-- DATA KANDIDAT -->
-    <div class="sec-block">
-      <div class="sec-label"><div class="sec-label-dot"></div><span>Data Kandidat</span></div>
-      <div class="sec-body">
-        <div class="field-row">
-          <div class="field">
-            <label>Nama Kandidat <span class="req-star">*</span></label>
-            <input type="text" id="m-nama" placeholder="Nama lengkap karyawan">
-          </div>
-          <div class="field">
-            <label>NIK <span class="req-star">*</span></label>
-            <input type="text" id="m-nik" placeholder="Nomor Induk Karyawan">
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label>Posisi / Jabatan <span class="req-star">*</span></label>
-            <input type="text" id="m-posisi" placeholder="e.g. BU Head MS Family">
-          </div>
-          <div class="field">
-            <label>Level <span class="req-star">*</span></label>
-            <select>
-              <option value="">— Pilih Level —</option>
-              <option>Staff</option><option>Supervisor</option>
-              <option>Assistant Manager</option><option>Manager</option>
-              <option selected>Senior Manager</option><option>General Manager</option><option>Direktur</option>
-            </select>
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label>Divisi / Department <span class="req-star">*</span></label>
-            <input type="text" id="m-divisi" placeholder="e.g. Operation">
-          </div>
-          <div class="field">
-            <label>Atasan Langsung <span class="req-star">*</span></label>
-            <input type="text" id="m-atasan" placeholder="Nama supervisor / mentor">
-          </div>
-        </div>
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2 id="page-title">Dashboard IDP</h2>
+        <p id="page-sub">Individual Development Program · 2026</p>
+      </div>
+      <div class="topbar-right">
+        <span id="topbar-name" style="font-size:12px;color:var(--muted);"></span>
       </div>
     </div>
 
-    <!-- INFORMASI SESI -->
-    <div class="sec-block">
-      <div class="sec-label"><div class="sec-label-dot"></div><span>Informasi Sesi</span></div>
-      <div class="sec-body">
-        <div class="field-row">
-          <div class="field">
-            <label>Bulan Laporan <span class="req-star">*</span></label>
-            <select>
-              <option>Januari</option><option>Februari</option><option>Maret</option>
-              <option selected>April</option><option>Mei</option><option>Juni</option>
-              <option>Juli</option><option>Agustus</option><option>September</option>
-              <option>Oktober</option><option>November</option><option>Desember</option>
-            </select>
+    <div class="content">
+
+      <!-- ─── DASHBOARD ─── -->
+      <div class="page active" id="page-dashboard">
+        <div class="welcome">
+          <div>
+            <h1 id="dash-welcome">Selamat Datang!</h1>
+            <p id="dash-sub">Program IDP Anda sedang berjalan · 2026</p>
           </div>
-          <div class="field">
-            <label>Sesi ke- <span class="req-star">*</span></label>
-            <select>
-              <option selected>Sesi 1 of 6</option><option>Sesi 2 of 6</option>
-              <option>Sesi 3 of 6</option><option>Sesi 4 of 6</option>
-              <option>Sesi 5 of 6</option><option>Sesi 6 of 6</option>
-            </select>
+          <div class="welcome-stats">
+            <div class="ws-item"><div class="ws-val" id="dash-sesi">—</div><div class="ws-lbl">Sesi Selesai</div></div>
+            <div class="ws-item"><div class="ws-val" id="dash-aktivitas">—</div><div class="ws-lbl">Aktivitas</div></div>
+          </div>
+          <div class="ring-wrap">
+            <svg width="90" height="90" class="ring" viewBox="0 0 100 100">
+              <circle class="ring-bg" cx="50" cy="50" r="45"/>
+              <circle class="ring-fill" cx="50" cy="50" r="45" id="dash-ring" style="stroke-dashoffset:283"/>
+            </svg>
+            <div class="ring-center"><div class="ring-pct" id="dash-pct">0%</div><div class="ring-lbl">Progress</div></div>
           </div>
         </div>
+        <div class="g4" style="margin-bottom:20px;" id="dash-stats">
+          <div class="stat-card"><div class="stat-top"><div class="stat-icon si-red">🎯</div></div><div class="stat-val" id="ds1">—</div><div class="stat-lbl">Target Aktif</div></div>
+          <div class="stat-card"><div class="stat-top"><div class="stat-icon si-navy">📋</div></div><div class="stat-val" id="ds2">—</div><div class="stat-lbl">Laporan Dikirim</div></div>
+          <div class="stat-card"><div class="stat-top"><div class="stat-icon si-gold">⭐</div></div><div class="stat-val" id="ds3">—</div><div class="stat-lbl">Rata-rata Kemahiran</div></div>
+          <div class="stat-card"><div class="stat-top"><div class="stat-icon si-green">✅</div></div><div class="stat-val" id="ds4">—</div><div class="stat-lbl">Sesi Selesai</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Aktivitas Terkini</h3></div>
+          <div id="recent-list"><div class="loading"><div class="spinner"></div>Memuat data...</div></div>
+        </div>
       </div>
-    </div>
 
-    <!-- AREA & TARGET -->
-    <div class="sec-block">
-      <div class="sec-label"><div class="sec-label-dot"></div><span>Area &amp; Target Pengembangan</span></div>
-      <div class="sec-body">
-        <div class="target-grid">
-          <div class="target-card">
-            <div class="target-card-head">Target 1</div>
-            <div class="target-card-body">
-              <div class="mini-label">Area</div>
-              <input type="text" placeholder="Tulis area...">
-              <div class="mini-label">Target</div>
-              <textarea placeholder="Uraikan target yang ingin dicapai..."></textarea>
+      <!-- ─── PROFIL ─── -->
+      <div class="page" id="page-profil">
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-body">
+            <div class="sec-label">Data Pribadi & Jabatan</div>
+            <div class="frow">
+              <div class="field"><label>Nama Lengkap</label><input type="text" id="p-nama" placeholder="Nama lengkap"></div>
+              <div class="field"><label>NIK</label><input type="text" id="p-nik" placeholder="Nomor Induk Karyawan"></div>
+            </div>
+            <div class="frow">
+              <div class="field"><label>Posisi / Jabatan</label><input type="text" id="p-posisi" placeholder="e.g. BU Head MS Family"></div>
+              <div class="field"><label>Level</label>
+                <select id="p-level">
+                  <option>Staff</option><option>Supervisor</option><option>Assistant Manager</option>
+                  <option>Manager</option><option>Senior Manager</option><option>General Manager</option><option>Direktur</option>
+                </select>
+              </div>
+            </div>
+            <div class="frow">
+              <div class="field"><label>Divisi</label><input type="text" id="p-divisi" placeholder="e.g. Operation"></div>
+              <div class="field"><label>Department</label><input type="text" id="p-dept" placeholder="e.g. Operation"></div>
+            </div>
+            <div class="frow">
+              <div class="field"><label>Tanggal Lahir</label><input type="date" id="p-lahir"></div>
+              <div class="field"><label>Tanggal Masuk</label><input type="date" id="p-masuk"></div>
+            </div>
+            <div class="frow">
+              <div class="field"><label>Atasan Langsung</label><input type="text" id="p-atasan" placeholder="Nama atasan langsung"></div>
+              <div class="field"><label>Mentor / Coach</label><input type="text" id="p-mentor" placeholder="Nama mentor"></div>
             </div>
           </div>
-          <div class="target-card">
-            <div class="target-card-head">Target 2</div>
-            <div class="target-card-body">
-              <div class="mini-label">Area</div>
-              <input type="text" placeholder="Tulis area...">
-              <div class="mini-label">Target</div>
-              <textarea placeholder="Uraikan target yang ingin dicapai..."></textarea>
+          <div class="submit-area">
+            <span class="save-note">Data profil tersimpan otomatis per karyawan</span>
+            <button class="btn-save" onclick="saveProfil()">💾 Simpan Profil</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── RENCANA PENGEMBANGAN ─── -->
+      <div class="page" id="page-rencana">
+        <div class="card">
+          <div class="card-header"><h3>Rencana & Target Pengembangan</h3></div>
+          <div class="card-body">
+            <div class="sec-label">3 Target Kompetensi</div>
+            <div class="target-grid">
+              <div class="target-card">
+                <div class="target-head">🎯 Target 1</div>
+                <div class="target-body">
+                  <div class="mini-lbl">Area Pengembangan</div>
+                  <input type="text" id="t1-area" placeholder="e.g. Leadership">
+                  <div class="mini-lbl">Uraian Target</div>
+                  <textarea id="t1-target" placeholder="Jelaskan target yang ingin dicapai..."></textarea>
+                </div>
+              </div>
+              <div class="target-card">
+                <div class="target-head">🎯 Target 2</div>
+                <div class="target-body">
+                  <div class="mini-lbl">Area Pengembangan</div>
+                  <input type="text" id="t2-area" placeholder="e.g. Communication">
+                  <div class="mini-lbl">Uraian Target</div>
+                  <textarea id="t2-target" placeholder="Jelaskan target yang ingin dicapai..."></textarea>
+                </div>
+              </div>
+              <div class="target-card">
+                <div class="target-head">🎯 Target 3</div>
+                <div class="target-body">
+                  <div class="mini-lbl">Area Pengembangan</div>
+                  <input type="text" id="t3-area" placeholder="e.g. Strategic Thinking">
+                  <div class="mini-lbl">Uraian Target</div>
+                  <textarea id="t3-target" placeholder="Jelaskan target yang ingin dicapai..."></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="sec-label" style="margin-top:16px;">Informasi Pelaksanaan</div>
+            <div class="frow">
+              <div class="field"><label>Periode Program</label><input type="text" id="r-periode" placeholder="e.g. Januari – Juni 2026"></div>
+              <div class="field"><label>Metode Utama</label>
+                <select id="r-metode">
+                  <option>Training / Pelatihan</option><option>Coaching</option><option>Mentoring</option>
+                  <option>On-the-Job Learning</option><option>E-Learning</option><option>Kombinasi</option>
+                </select>
+              </div>
             </div>
           </div>
-          <div class="target-card">
-            <div class="target-card-head">Target 3</div>
-            <div class="target-card-body">
-              <div class="mini-label">Area</div>
-              <input type="text" placeholder="Tulis area...">
-              <div class="mini-label">Target</div>
-              <textarea placeholder="Uraikan target yang ingin dicapai..."></textarea>
+          <div class="submit-area">
+            <span class="save-note">Rencana tersimpan ke database pribadi Anda</span>
+            <button class="btn-save" onclick="saveRencana()">💾 Simpan Rencana</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── LAPORAN BULANAN ─── -->
+      <div class="page" id="page-laporan">
+        <div class="card">
+          <div class="card-header">
+            <h3>Laporan Bulanan</h3>
+            <div style="display:flex;gap:8px;">
+              <select id="lap-bulan" style="border:1.5px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;font-family:'Source Sans 3',sans-serif;outline:none;" onchange="loadLaporan()">
+                <option>Januari</option><option>Februari</option><option>Maret</option>
+                <option selected>April</option><option>Mei</option><option>Juni</option>
+              </select>
+              <select id="lap-sesi" style="border:1.5px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;font-family:'Source Sans 3',sans-serif;outline:none;">
+                <option>Sesi 1</option><option>Sesi 2</option><option>Sesi 3</option>
+                <option selected>Sesi 4</option><option>Sesi 5</option><option>Sesi 6</option>
+              </select>
             </div>
           </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label>Realisasi Waktu Pelaksanaan <span class="req-star">*</span></label>
-            <input type="text" id="m-waktu" placeholder="Tanggal / periode pelaksanaan">
+          <div class="card-body">
+            <div class="sec-label">Aktivitas yang Dilaksanakan</div>
+            <div class="num-list" style="margin-bottom:16px;">
+              <div class="num-row"><div class="num-dot">1</div><input type="text" id="a1" placeholder="Aktivitas pertama..."></div>
+              <div class="num-row"><div class="num-dot">2</div><input type="text" id="a2" placeholder="Aktivitas kedua..."></div>
+              <div class="num-row"><div class="num-dot gray">3</div><input type="text" id="a3" placeholder="(opsional)"></div>
+              <div class="num-row"><div class="num-dot gray">4</div><input type="text" id="a4" placeholder="(opsional)"></div>
+              <div class="num-row"><div class="num-dot gray">5</div><input type="text" id="a5" placeholder="(opsional)"></div>
+            </div>
+            <div class="frow">
+              <div>
+                <div class="sec-label">Kendala yang Dihadapi</div>
+                <div class="num-list">
+                  <div class="num-row"><div class="num-dot gray">1</div><input type="text" id="k1" placeholder="Kendala pertama..."></div>
+                  <div class="num-row"><div class="num-dot gray">2</div><input type="text" id="k2" placeholder="Kendala kedua..."></div>
+                  <div class="num-row"><div class="num-dot gray">3</div><input type="text" id="k3" placeholder="Kendala ketiga..."></div>
+                </div>
+              </div>
+              <div>
+                <div class="sec-label">Pencapaian Tambahan</div>
+                <div class="num-list">
+                  <div class="num-row"><div class="num-dot" style="background:#1a7f4f;">1</div><input type="text" id="pc1" placeholder="Pencapaian pertama..."></div>
+                  <div class="num-row"><div class="num-dot" style="background:#1a7f4f;">2</div><input type="text" id="pc2" placeholder="Pencapaian kedua..."></div>
+                  <div class="num-row"><div class="num-dot" style="background:#1a7f4f;">3</div><input type="text" id="pc3" placeholder="Pencapaian ketiga..."></div>
+                </div>
+              </div>
+            </div>
+            <div class="sec-label" style="margin-top:16px;">Komentar Atasan</div>
+            <div class="field"><textarea id="komentar" rows="3" placeholder="Diisi oleh atasan langsung..."></textarea></div>
           </div>
-          <div class="field">
-            <label>Metode Pengembangan <span class="req-star">*</span></label>
-            <select>
-              <option value="">— Pilih Metode —</option>
-              <option>Training / Pelatihan</option><option>Coaching</option>
-              <option>Mentoring</option><option>On-the-Job Learning</option>
-              <option>Self-Study / Mandiri</option><option>E-Learning</option>
-              <option>Workshop / Seminar</option><option>Kombinasi</option>
-            </select>
+          <div class="submit-area">
+            <span class="save-note" id="lap-status">Belum tersimpan</span>
+            <button class="btn-save" onclick="saveLaporan()">📤 Kirim Laporan</button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- AKTIVITAS -->
-    <div class="sec-block">
-      <div class="sec-label"><div class="sec-label-dot"></div><span>Aktivitas yang Telah Dilaksanakan</span></div>
-      <div class="sec-body">
-        <div class="num-inputs">
-          <div class="num-input-row"><div class="num-bubble">1</div><input type="text" placeholder="Tulis aktivitas pertama..."></div>
-          <div class="num-input-row"><div class="num-bubble">2</div><input type="text" placeholder="Tulis aktivitas kedua..."></div>
-          <div class="num-input-row"><div class="num-bubble gray">3</div><input type="text" placeholder="(opsional)"></div>
-          <div class="num-input-row"><div class="num-bubble gray">4</div><input type="text" placeholder="(opsional)"></div>
-          <div class="num-input-row"><div class="num-bubble gray">5</div><input type="text" placeholder="(opsional)"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- KENDALA -->
-    <div class="sec-block">
-      <div class="sec-label"><div class="sec-label-dot"></div><span>Kendala yang Dihadapi</span></div>
-      <div class="sec-body">
-        <div class="num-inputs">
-          <div class="num-input-row"><div class="num-bubble gray">1</div><input type="text" placeholder="Kendala pertama (opsional)"></div>
-          <div class="num-input-row"><div class="num-bubble gray">2</div><input type="text" placeholder="Kendala kedua (opsional)"></div>
-          <div class="num-input-row"><div class="num-bubble gray">3</div><input type="text" placeholder="Kendala ketiga (opsional)"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PENCAPAIAN TAMBAHAN -->
-    <div class="sec-block">
-      <div class="sec-label"><div class="sec-label-dot"></div><span>Pencapaian Tambahan di Luar Rencana</span></div>
-      <div class="sec-body">
-        <div class="num-inputs">
-          <div class="num-input-row"><div class="num-bubble gray">1</div><input type="text" placeholder="Pencapaian pertama (opsional)"></div>
-          <div class="num-input-row"><div class="num-bubble gray">2</div><input type="text" placeholder="Pencapaian kedua (opsional)"></div>
-          <div class="num-input-row"><div class="num-bubble gray">3</div><input type="text" placeholder="Pencapaian ketiga (opsional)"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- KOMENTAR -->
-    <div class="sec-block">
-      <div class="sec-label"><div class="sec-label-dot"></div><span>Komentar &amp; Masukan dari Atasan</span></div>
-      <div class="sec-body">
-        <div class="field">
-          <label>Komentar Atasan Langsung</label>
-          <textarea rows="4" id="m-komentar" placeholder="Diisi oleh atasan langsung..."></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- SUBMIT -->
-    <div class="submit-area">
-      <button class="btn-submit" id="btn-monthly" onclick="submitForm('monthly', event)">📤 Submit Laporan Bulanan</button>
-      <div class="submit-note">Pastikan semua data bertanda * sudah terisi sebelum submit.</div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════
-     PANEL 2 — GAP TRACKER
-════════════════════════════════════ -->
-<div class="form-panel" id="panel-gap">
-
-  <div class="form-card">
-    <div class="form-header">
-      <h2>IDP Gap &amp; Pencapaian Tracker</h2>
-      <p>Perbandingan Progress Bulan 1–6 · Champ Resto Indonesia</p>
-      <div class="session-badge">📊 Diisi setiap akhir sesi / review bulanan</div>
-    </div>
-
-    <!-- IDENTITAS -->
-    <div class="sec-block">
-      <div class="sec-label"><div class="sec-label-dot"></div><span>Identitas Kandidat</span></div>
-      <div class="sec-body">
-        <div class="field-row">
-          <div class="field">
-            <label>Nama Kandidat <span class="req-star">*</span></label>
-            <input type="text" id="gap-nama" placeholder="Nama lengkap karyawan">
-          </div>
-          <div class="field">
-            <label>NIK <span class="req-star">*</span></label>
-            <input type="text" id="gap-nik" placeholder="Nomor Induk Karyawan">
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label>Posisi / Jabatan <span class="req-star">*</span></label>
-            <input type="text" id="gap-posisi" placeholder="e.g. BU Head MS Family">
-          </div>
-          <div class="field">
-            <label>Sesi yang Dilaporkan <span class="req-star">*</span></label>
-            <select id="gap-sesi">
+      <!-- ─── GAP ANALYSIS ─── -->
+      <div class="page" id="page-gap">
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <h3>Gap Analysis & Tingkat Kemahiran</h3>
+            <select id="gap-sesi-sel" style="border:1.5px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;font-family:'Source Sans 3',sans-serif;outline:none;" onchange="loadGap()">
               <option>Sesi 1</option><option>Sesi 2</option><option>Sesi 3</option>
-              <option>Sesi 4</option><option>Sesi 5</option><option>Sesi 6</option>
-              <option>Rekap Akhir (Semua Sesi)</option>
+              <option selected>Sesi 4</option><option>Sesi 5</option><option>Sesi 6</option>
             </select>
+          </div>
+          <div class="card-body" id="gap-body">
+            <!-- Generated by JS -->
+          </div>
+          <div class="submit-area">
+            <span class="save-note">Data gap tersimpan per sesi per karyawan</span>
+            <button class="btn-save" onclick="saveGap()">💾 Simpan Gap Tracker</button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- SESSION TRACKER -->
-    <div class="sec-block">
-      <div class="sec-label"><div class="sec-label-dot"></div><span>Status Sesi Program</span></div>
-      <div class="sec-body">
-        <div class="session-tracker">
-          <div class="sess-box done"><div class="sess-num green">1</div><div class="sess-label">Sesi</div><div class="sess-status done">✓ Selesai</div></div>
-          <div class="sess-box done"><div class="sess-num green">2</div><div class="sess-label">Sesi</div><div class="sess-status done">✓ Selesai</div></div>
-          <div class="sess-box done"><div class="sess-num green">3</div><div class="sess-label">Sesi</div><div class="sess-status done">✓ Selesai</div></div>
-          <div class="sess-box active"><div class="sess-num red">4</div><div class="sess-label">Sesi</div><div class="sess-status active">▶ Berjalan</div></div>
-          <div class="sess-box"><div class="sess-num">5</div><div class="sess-label">Sesi</div><div class="sess-status">– Belum</div></div>
-          <div class="sess-box"><div class="sess-num">6</div><div class="sess-label">Sesi</div><div class="sess-status">– Belum</div></div>
+      <!-- ─── HR DASHBOARD ─── -->
+      <div class="page" id="page-hr-dashboard">
+        <div class="g4" style="margin-bottom:20px;">
+          <div class="stat-card"><div class="stat-top"><div class="stat-icon si-navy">👥</div></div><div class="stat-val" id="hr-total">—</div><div class="stat-lbl">Total Karyawan IDP</div></div>
+          <div class="stat-card"><div class="stat-top"><div class="stat-icon si-green">✅</div></div><div class="stat-val" id="hr-aktif">—</div><div class="stat-lbl">Program Aktif</div></div>
+          <div class="stat-card"><div class="stat-top"><div class="stat-icon si-gold">📋</div></div><div class="stat-val" id="hr-laporan">—</div><div class="stat-lbl">Laporan Masuk</div></div>
+          <div class="stat-card"><div class="stat-top"><div class="stat-icon si-red">⏳</div></div><div class="stat-val" id="hr-pending">—</div><div class="stat-lbl">Menunggu Approve</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Progress Semua Karyawan</h3></div>
+          <div id="hr-emp-list"><div class="loading"><div class="spinner"></div>Memuat data karyawan...</div></div>
         </div>
       </div>
-    </div>
 
-    <!-- GAP TABLE -->
-    <div class="sec-block">
-      <div class="sec-label"><div class="sec-label-dot"></div><span>Gap &amp; Pencapaian Per Kompetensi (Bulan 1–6)</span></div>
-      <div class="sec-body">
-        <div id="gap-rows"></div>
-      </div>
-    </div>
-
-    <!-- EVALUASI AKHIR -->
-    <div class="sec-block">
-      <div class="sec-label"><div class="sec-label-dot"></div><span>Catatan Evaluasi Akhir</span></div>
-      <div class="sec-body">
-        <div class="field">
-          <label>Catatan &amp; Rekomendasi Tindak Lanjut</label>
-          <textarea id="gap-catatan" rows="4" placeholder="Tuliskan rangkuman evaluasi dan rekomendasi pengembangan selanjutnya..."></textarea>
-        </div>
-        <div class="field">
-          <label>Rating Efektivitas Program <span class="req-star">*</span></label>
-          <select id="gap-rating">
-            <option value="">— Pilih Rating —</option>
-            <option>1 – Tidak Efektif</option>
-            <option>2 – Kurang Efektif</option>
-            <option>3 – Cukup Efektif</option>
-            <option>4 – Efektif</option>
-            <option>5 – Sangat Efektif</option>
-          </select>
+      <!-- ─── HR KARYAWAN ─── -->
+      <div class="page" id="page-hr-karyawan">
+        <div class="card">
+          <div class="card-header">
+            <h3>Semua Karyawan IDP</h3>
+            <input type="text" id="search-emp" placeholder="🔍 Cari nama / NIK..." oninput="filterKaryawan()" style="border:1.5px solid var(--border);border-radius:6px;padding:7px 12px;font-size:12px;font-family:'Source Sans 3',sans-serif;outline:none;width:220px;">
+          </div>
+          <div id="karyawan-table"><div class="loading"><div class="spinner"></div>Memuat...</div></div>
         </div>
       </div>
-    </div>
 
-    <div class="submit-area">
-      <button class="btn-submit" id="btn-gap" onclick="submitForm('gap', event)">📤 Submit Gap Tracker</button>
-      <div class="submit-note">Data akan tersimpan ke email & Google Sheets tim Human Capital.</div>
-    </div>
-  </div>
+      <!-- ─── HR APPROVE ─── -->
+      <div class="page" id="page-hr-approve">
+        <div class="card">
+          <div class="card-header"><h3>Laporan Menunggu Persetujuan</h3></div>
+          <div class="card-body" id="approve-list"><div class="loading"><div class="spinner"></div>Memuat...</div></div>
+        </div>
+      </div>
 
-</div><!-- end panel-gap -->
-</div><!-- end wrapper -->
+      <!-- ─── HR REGISTER ─── -->
+      <div class="page" id="page-hr-register">
+        <div class="card" style="max-width:500px;">
+          <div class="card-header"><h3>Daftarkan Karyawan Baru</h3></div>
+          <div class="card-body">
+            <div class="field" style="margin-bottom:14px;"><label>Email Karyawan</label><input type="email" id="reg-email" placeholder="nama@cri.co.id"></div>
+            <div class="field" style="margin-bottom:14px;"><label>Password Awal</label><input type="password" id="reg-pass" placeholder="Min. 8 karakter"></div>
+            <div class="field" style="margin-bottom:14px;"><label>Nama Lengkap</label><input type="text" id="reg-nama" placeholder="Nama lengkap karyawan"></div>
+            <div class="field" style="margin-bottom:14px;"><label>NIK</label><input type="text" id="reg-nik" placeholder="Nomor Induk Karyawan"></div>
+            <div class="field" style="margin-bottom:14px;"><label>Posisi</label><input type="text" id="reg-posisi" placeholder="e.g. BU Head MS Family"></div>
+            <div class="field" style="margin-bottom:0;"><label>Role</label>
+              <select id="reg-role"><option value="karyawan">Karyawan</option><option value="hr">HR / Admin</option></select>
+            </div>
+          </div>
+          <div class="submit-area">
+            <button class="btn-save" onclick="registerKaryawan()">➕ Daftarkan Karyawan</button>
+          </div>
+        </div>
+      </div>
 
-<!-- SUCCESS OVERLAY -->
-<div class="success-overlay" id="successOverlay">
-  <div class="success-box">
-    <div class="success-icon">✅</div>
-    <h3>Form Berhasil Dikirim!</h3>
-    <p>Terima kasih. Data Anda telah berhasil dikirimkan ke tim Human Capital CRI dan masuk ke Google Sheets.</p>
-    <button class="btn-reset" onclick="document.getElementById('successOverlay').classList.remove('show')">Tutup</button>
-  </div>
+    </div><!-- end content -->
+  </main>
 </div>
+</div><!-- end app-page -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
-const FORMSPREE = 'https://formspree.io/f/xqeyknvn';
-const GSHEET  = 'https://script.google.com/macros/s/AKfycbxz_LaaPuOhLs7P9vGZ_zOZi5a6Iv1k058MKY-0ghYp1pbxIAQ4BUq_eLJY5jOweSxaXA/exec';
-
-// Tab switch
-function switchTab(tab) {
-  document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-pill').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-' + tab).classList.add('active');
-  event.target.classList.add('active');
-  window.scrollTo({top:0, behavior:'smooth'});
+// ════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
 }
 
-// Collect all named inputs from a panel
-function collectData(panelId) {
-  const panel = document.getElementById('panel-' + panelId);
-  const data = { _form_type: panelId === 'monthly' ? 'Monthly Report' : 'Gap Tracker' };
-  panel.querySelectorAll('input[id], select[id], textarea[id]').forEach(el => {
-    data[el.id] = el.value;
-  });
-  // Also collect unnamed inputs by their label text
-  panel.querySelectorAll('.field').forEach(field => {
-    const label = field.querySelector('label');
-    const input = field.querySelector('input:not([id]), select:not([id]), textarea:not([id])');
-    if (label && input) {
-      const key = label.innerText.replace(' *','').trim().replace(/\s+/g,'_').toLowerCase();
-      data[key] = input.value;
-    }
-  });
-  // Numbered inputs
-  panel.querySelectorAll('.num-input-row').forEach((row, i) => {
-    const inp = row.querySelector('input');
-    const bubble = row.querySelector('.num-bubble');
-    if (inp && inp.value) {
-      const section = row.closest('.sec-block');
-      const secName = section ? section.querySelector('.sec-label span').innerText : 'item';
-      data[secName + '_' + (i+1)] = inp.value;
-    }
-  });
-  // Gap rows
-  panel.querySelectorAll('.gap-row').forEach((row, gi) => {
-    const nameInp = row.querySelector('input[style]');
-    if (nameInp) data['gap_' + (gi+1) + '_kompetensi'] = nameInp.value;
-    row.querySelectorAll('.gap-month-item').forEach((mi, mj) => {
-      const inputs = mi.querySelectorAll('input');
-      if (inputs[0]) data['gap_' + (gi+1) + '_bln' + (mj+1) + '_kondisi'] = inputs[0].value;
-      if (inputs[1]) data['gap_' + (gi+1) + '_bln' + (mj+1) + '_capaian'] = inputs[1].value;
-    });
-    const sel = row.querySelector('.kemahiran-select');
-    if (sel) data['gap_' + (gi+1) + '_kemahiran'] = sel.options[sel.selectedIndex].text;
-  });
-  // Target cards
-  panel.querySelectorAll('.target-card').forEach((card, ti) => {
-    const inputs = card.querySelectorAll('input, textarea');
-    if (inputs[0]) data['target_' + (ti+1) + '_area'] = inputs[0].value;
-    if (inputs[1]) data['target_' + (ti+1) + '_uraian'] = inputs[1].value;
-  });
-  return data;
+function showLogin() {
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('app-page').style.display = 'none';
 }
 
-async function submitForm(type, e) {
-  e.preventDefault();
-  const btn = document.getElementById('btn-' + type);
+function showApp(role) {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app-page').style.display = 'block';
+  const u = window._currentUser;
+  const initials = (u.nama || u.email).split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('sidebar-avatar').textContent = initials;
+  document.getElementById('sidebar-name').textContent = u.nama || u.email;
+  document.getElementById('sidebar-role').textContent = u.posisi || (role === 'hr' ? 'HR Admin' : 'Karyawan');
+  document.getElementById('topbar-name').textContent = u.nama || u.email;
+  document.getElementById('dash-welcome').textContent = 'Selamat Datang, ' + (u.nama || '');
+  if (role === 'hr') {
+    document.getElementById('hr-menu').style.display = 'block';
+    document.querySelectorAll('.hr-only').forEach(el => el.style.display = 'block');
+  }
+  loadDashboard();
+  buildGapForm();
+  loadProfil();
+}
 
-  // Basic validation
-  const panel = document.getElementById('panel-' + type);
-  const required = panel.querySelectorAll('input[id][placeholder*="Nama"], input[id][placeholder*="NIK"]');
-  let valid = true;
-  required.forEach(inp => { if (!inp.value.trim()) { inp.style.borderColor='#c8102e'; valid = false; } else { inp.style.borderColor=''; } });
-  if (!valid) { alert('Mohon isi semua field yang wajib (*)'); return; }
+function nav(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = {
+    dashboard: ['Dashboard IDP','Progress & ringkasan program Anda'],
+    profil: ['Profil Saya','Data pribadi & jabatan'],
+    rencana: ['Rencana Pengembangan','Target & metode program IDP'],
+    laporan: ['Laporan Bulanan','Aktivitas & pencapaian per sesi'],
+    gap: ['Gap Analysis','Tingkat kemahiran per kompetensi'],
+    'hr-dashboard': ['Dashboard HR','Pantau semua karyawan IDP'],
+    'hr-karyawan': ['Semua Karyawan','Database peserta IDP'],
+    'hr-approve': ['Approve Laporan','Laporan menunggu persetujuan'],
+    'hr-register': ['Daftarkan Karyawan','Tambah peserta IDP baru'],
+  };
+  if (titles[id]) {
+    document.getElementById('page-title').textContent = titles[id][0];
+    document.getElementById('page-sub').textContent = titles[id][1];
+  }
+  if (id === 'hr-dashboard') loadHRDashboard();
+  if (id === 'hr-karyawan') loadAllKaryawan();
+  if (id === 'hr-approve') loadApprove();
+  if (id === 'laporan') loadLaporan();
+  if (id === 'gap') loadGap();
+}
 
-  btn.disabled = true;
-  btn.textContent = '⏳ Mengirim...';
-
-  const payload = collectData(type);
-
+// ════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
   try {
-    // Send to Google Sheets (primary)
-    const gsRes = fetch(GSHEET, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    // Send to Formspree (email notification)
-    const fsRes = fetch(FORMSPREE, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    await Promise.all([gsRes, fsRes]);
-
-    // Show success & reset
-    document.getElementById('successOverlay').classList.add('show');
-    panel.querySelectorAll('input:not([type=button]), textarea').forEach(el => el.value = '');
-    panel.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
-
-  } catch(err) {
-    alert('Koneksi gagal. Periksa internet Anda dan coba lagi.');
+    await window._firebaseFns.signInWithEmailAndPassword(window._auth, email, pass);
+  } catch(e) {
+    errEl.style.display = 'block';
+    errEl.textContent = 'Email atau password salah. Silakan coba lagi.';
   }
-
-  btn.disabled = false;
-  btn.textContent = type === 'monthly' ? '📤 Submit Laporan Bulanan' : '📤 Submit Gap Tracker';
 }
 
-// Generate gap rows
-const gapContainer = document.getElementById('gap-rows');
-for (let i = 1; i <= 5; i++) {
-  const monthColors = ['C8102E','A00D24','8C0B20','780919','640817','500614'];
-  let monthHTML = '';
-  for (let m = 1; m <= 6; m++) {
-    monthHTML += `
-      <div class="gap-month-item">
-        <div class="gap-month-label" style="background:#${monthColors[m-1]}">Bln ${m}</div>
-        <div class="gap-month-inputs">
-          <input type="text" placeholder="Kondisi">
-          <input type="text" placeholder="Capaian">
-        </div>
-      </div>`;
+async function doLogout() {
+  await window._firebaseFns.signOut(window._auth);
+}
+
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════
+async function loadDashboard() {
+  const uid = window._currentUser?.uid;
+  if (!uid) return;
+  const { doc, getDoc, collection, getDocs, query, where } = window._firebaseFns;
+  const db = window._db;
+
+  // Load laporan count
+  const lapRef = collection(db, 'users', uid, 'laporan');
+  const lapSnap = await getDocs(lapRef);
+  const lapCount = lapSnap.size;
+  const sesiCount = lapCount;
+  const pct = Math.round((sesiCount / 6) * 100);
+
+  document.getElementById('ds2').textContent = lapCount;
+  document.getElementById('ds4').textContent = sesiCount + '/6';
+  document.getElementById('ds1').textContent = '3';
+  document.getElementById('ds3').textContent = '—';
+  document.getElementById('dash-sesi').textContent = sesiCount;
+  document.getElementById('dash-aktivitas').textContent = lapCount * 3;
+  document.getElementById('dash-pct').textContent = pct + '%';
+  document.getElementById('dash-ring').style.strokeDashoffset = 283 - (283 * pct / 100);
+  document.getElementById('dash-sub').textContent = `Program IDP · Sesi ${sesiCount}/6 selesai`;
+
+  // Recent list
+  let html = '<table><thead><tr><th>Bulan</th><th>Sesi</th><th>Aktivitas</th><th>Status</th></tr></thead><tbody>';
+  if (lapSnap.empty) {
+    html = '<div class="loading" style="color:var(--muted);">Belum ada laporan. Mulai isi Laporan Bulanan Anda.</div>';
+  } else {
+    lapSnap.forEach(d => {
+      const data = d.data();
+      html += `<tr>
+        <td><strong>${data.bulan || '—'}</strong></td>
+        <td>${data.sesi || '—'}</td>
+        <td>${data.a1 ? data.a1.substring(0,50)+'...' : '—'}</td>
+        <td><span class="badge ${data.status==='approved'?'bg':data.status==='rejected'?'br':'bo'}">${data.status==='approved'?'✓ Disetujui':data.status==='rejected'?'✗ Ditolak':'⏳ Review'}</span></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
   }
-  gapContainer.innerHTML += `
-    <div class="gap-row">
-      <div class="gap-row-head">
-        <div class="gap-num">${i}</div>
-        <span>Gap / Kompetensi ${i}</span>
+  document.getElementById('recent-list').innerHTML = html;
+}
+
+// ════════════════════════════════════════
+// PROFIL
+// ════════════════════════════════════════
+async function loadProfil() {
+  const uid = window._currentUser?.uid;
+  if (!uid) return;
+  const { doc, getDoc } = window._firebaseFns;
+  const snap = await getDoc(doc(window._db, 'users', uid));
+  if (snap.exists()) {
+    const d = snap.data();
+    ['nama','nik','posisi','level','divisi','dept','atasan','mentor'].forEach(k => {
+      const el = document.getElementById('p-'+k);
+      if (el && d[k]) { if (el.tagName==='SELECT') el.value=d[k]; else el.value=d[k]; }
+    });
+    if (d.lahir) document.getElementById('p-lahir').value = d.lahir;
+    if (d.masuk) document.getElementById('p-masuk').value = d.masuk;
+  }
+}
+
+async function saveProfil() {
+  const uid = window._currentUser?.uid;
+  const { doc, setDoc, serverTimestamp } = window._firebaseFns;
+  const data = {
+    nama: document.getElementById('p-nama').value,
+    nik: document.getElementById('p-nik').value,
+    posisi: document.getElementById('p-posisi').value,
+    level: document.getElementById('p-level').value,
+    divisi: document.getElementById('p-divisi').value,
+    dept: document.getElementById('p-dept').value,
+    lahir: document.getElementById('p-lahir').value,
+    masuk: document.getElementById('p-masuk').value,
+    atasan: document.getElementById('p-atasan').value,
+    mentor: document.getElementById('p-mentor').value,
+    updatedAt: serverTimestamp()
+  };
+  await setDoc(doc(window._db, 'users', uid), data, { merge: true });
+  window._currentUser = { ...window._currentUser, ...data };
+  document.getElementById('sidebar-name').textContent = data.nama;
+  document.getElementById('sidebar-role').textContent = data.posisi;
+  const initials = data.nama.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('sidebar-avatar').textContent = initials;
+  showToast('✅ Profil berhasil disimpan!');
+}
+
+// ════════════════════════════════════════
+// RENCANA
+// ════════════════════════════════════════
+async function saveRencana() {
+  const uid = window._currentUser?.uid;
+  const { doc, setDoc, serverTimestamp } = window._firebaseFns;
+  const data = {
+    target1: { area: document.getElementById('t1-area').value, target: document.getElementById('t1-target').value },
+    target2: { area: document.getElementById('t2-area').value, target: document.getElementById('t2-target').value },
+    target3: { area: document.getElementById('t3-area').value, target: document.getElementById('t3-target').value },
+    periode: document.getElementById('r-periode').value,
+    metode: document.getElementById('r-metode').value,
+    updatedAt: serverTimestamp()
+  };
+  await setDoc(doc(window._db, 'users', uid, 'rencana', '2026'), data);
+  showToast('✅ Rencana pengembangan tersimpan!');
+}
+
+// ════════════════════════════════════════
+// LAPORAN
+// ════════════════════════════════════════
+async function loadLaporan() {
+  const uid = window._currentUser?.uid;
+  const bulan = document.getElementById('lap-bulan').value;
+  const { doc, getDoc } = window._firebaseFns;
+  const snap = await getDoc(doc(window._db, 'users', uid, 'laporan', bulan));
+  if (snap.exists()) {
+    const d = snap.data();
+    ['a1','a2','a3','a4','a5','k1','k2','k3','pc1','pc2','pc3','komentar'].forEach(k => {
+      const el = document.getElementById(k);
+      if (el && d[k]) el.value = d[k];
+    });
+    document.getElementById('lap-status').textContent = `Tersimpan · Status: ${d.status || 'draft'}`;
+    document.getElementById('lap-sesi').value = d.sesi || 'Sesi 1';
+  } else {
+    ['a1','a2','a3','a4','a5','k1','k2','k3','pc1','pc2','pc3','komentar'].forEach(k => {
+      const el = document.getElementById(k); if (el) el.value = '';
+    });
+    document.getElementById('lap-status').textContent = 'Belum ada laporan bulan ini';
+  }
+}
+
+async function saveLaporan() {
+  const uid = window._currentUser?.uid;
+  const bulan = document.getElementById('lap-bulan').value;
+  const { doc, setDoc, serverTimestamp } = window._firebaseFns;
+  const data = {
+    bulan, sesi: document.getElementById('lap-sesi').value,
+    a1: document.getElementById('a1').value,
+    a2: document.getElementById('a2').value,
+    a3: document.getElementById('a3').value,
+    a4: document.getElementById('a4').value,
+    a5: document.getElementById('a5').value,
+    k1: document.getElementById('k1').value,
+    k2: document.getElementById('k2').value,
+    k3: document.getElementById('k3').value,
+    pc1: document.getElementById('pc1').value,
+    pc2: document.getElementById('pc2').value,
+    pc3: document.getElementById('pc3').value,
+    komentar: document.getElementById('komentar').value,
+    status: 'pending',
+    submittedAt: serverTimestamp(),
+    karyawanNama: window._currentUser.nama || '',
+    karyawanNIK: window._currentUser.nik || '',
+  };
+  await setDoc(doc(window._db, 'users', uid, 'laporan', bulan), data);
+  // Also write to global collection for HR
+  await setDoc(doc(window._db, 'laporan_global', uid + '_' + bulan), { ...data, uid });
+  document.getElementById('lap-status').textContent = '⏳ Terkirim · Menunggu persetujuan HR';
+  showToast('✅ Laporan berhasil dikirim!');
+  loadDashboard();
+}
+
+// ════════════════════════════════════════
+// GAP ANALYSIS
+// ════════════════════════════════════════
+function buildGapForm() {
+  const colors = ['C8102E','A00D24','8C0B20','780919','640817','500614'];
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    let months = '';
+    for (let m = 1; m <= 6; m++) {
+      months += `<div class="month-col">
+        <div class="month-col-head" style="background:#${colors[m-1]}">Bln ${m}</div>
+        <input type="text" id="g${i}-bln${m}-kondisi" placeholder="Kondisi">
+        <input type="text" id="g${i}-bln${m}-capaian" placeholder="Capaian">
+      </div>`;
+    }
+    html += `<div class="gap-comp-row">
+      <div class="gap-comp-head">
+        <div class="gap-comp-num">${i}</div>
+        <input type="text" id="g${i}-nama" placeholder="Nama kompetensi / gap..." style="border:none;outline:none;font-size:13px;font-weight:600;font-family:'Source Sans 3',sans-serif;background:transparent;flex:1;">
       </div>
-      <div class="gap-row-body">
-        <div class="field">
-          <label>Nama Kompetensi / Gap</label>
-          <input type="text" placeholder="Tulis kompetensi yang dikembangkan..." style="border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;background:#fafbfc;width:100%;transition:border-color .15s;">
-        </div>
-        <div class="gap-month-grid">${monthHTML}</div>
+      <div class="gap-comp-body">
+        <div class="month-grid">${months}</div>
         <div class="kemahiran-row">
-          <div class="kemahiran-label">Tingkat Kemahiran Akhir:</div>
-          <select class="kemahiran-select" onchange="updateKemahiran(this)">
+          <div class="kemahiran-lbl">Tingkat Kemahiran:</div>
+          <select class="kemahiran-sel" id="g${i}-kemahiran" onchange="this.className='kemahiran-sel lv'+this.value">
             <option value="0">— Pilih —</option>
-            <option value="1">1 – Novice</option>
-            <option value="2">2 – Basic</option>
-            <option value="3">3 – Intermediate</option>
-            <option value="4">4 – Advanced</option>
+            <option value="1">1 – Novice</option><option value="2">2 – Basic</option>
+            <option value="3">3 – Intermediate</option><option value="4">4 – Advanced</option>
             <option value="5">5 – Expert</option>
           </select>
         </div>
       </div>
     </div>`;
+  }
+  html += `<div class="field" style="margin-top:14px;"><label>Catatan Evaluasi Akhir</label><textarea id="gap-catatan" rows="3" placeholder="Rangkuman evaluasi dan rekomendasi..."></textarea></div>`;
+  document.getElementById('gap-body').innerHTML = html;
 }
 
-function updateKemahiran(el) {
-  el.className = 'kemahiran-select';
-  const v = el.value;
-  if (v !== '0') el.classList.add('lv' + v);
+async function loadGap() {
+  const uid = window._currentUser?.uid;
+  const sesi = document.getElementById('gap-sesi-sel').value;
+  const { doc, getDoc } = window._firebaseFns;
+  const snap = await getDoc(doc(window._db, 'users', uid, 'gap', sesi));
+  if (!snap.exists()) return;
+  const d = snap.data();
+  for (let i = 1; i <= 5; i++) {
+    const g = d['gap' + i];
+    if (!g) continue;
+    document.getElementById(`g${i}-nama`).value = g.nama || '';
+    document.getElementById(`g${i}-kemahiran`).value = g.kemahiran || '0';
+    document.getElementById(`g${i}-kemahiran`).className = 'kemahiran-sel lv' + (g.kemahiran||'0');
+    for (let m = 1; m <= 6; m++) {
+      const el_k = document.getElementById(`g${i}-bln${m}-kondisi`);
+      const el_c = document.getElementById(`g${i}-bln${m}-capaian`);
+      if (el_k && g['bln'+m]) el_k.value = g['bln'+m].kondisi || '';
+      if (el_c && g['bln'+m]) el_c.value = g['bln'+m].capaian || '';
+    }
+  }
+  if (d.catatan) document.getElementById('gap-catatan').value = d.catatan;
+}
+
+async function saveGap() {
+  const uid = window._currentUser?.uid;
+  const sesi = document.getElementById('gap-sesi-sel').value;
+  const { doc, setDoc, serverTimestamp } = window._firebaseFns;
+  const data = { sesi, updatedAt: serverTimestamp() };
+  for (let i = 1; i <= 5; i++) {
+    data['gap' + i] = { nama: document.getElementById(`g${i}-nama`).value, kemahiran: document.getElementById(`g${i}-kemahiran`).value };
+    for (let m = 1; m <= 6; m++) {
+      data['gap'+i]['bln'+m] = {
+        kondisi: document.getElementById(`g${i}-bln${m}-kondisi`)?.value || '',
+        capaian: document.getElementById(`g${i}-bln${m}-capaian`)?.value || ''
+      };
+    }
+  }
+  data.catatan = document.getElementById('gap-catatan').value;
+  await setDoc(doc(window._db, 'users', uid, 'gap', sesi), data);
+  showToast('✅ Gap Tracker tersimpan!');
+}
+
+// ════════════════════════════════════════
+// HR FUNCTIONS
+// ════════════════════════════════════════
+async function loadHRDashboard() {
+  const { collection, getDocs } = window._firebaseFns;
+  const usersSnap = await getDocs(collection(window._db, 'users'));
+  const lapSnap = await getDocs(collection(window._db, 'laporan_global'));
+  const pendingCount = [...lapSnap.docs].filter(d => d.data().status === 'pending').length;
+
+  document.getElementById('hr-total').textContent = usersSnap.size;
+  document.getElementById('hr-aktif').textContent = usersSnap.size;
+  document.getElementById('hr-laporan').textContent = lapSnap.size;
+  document.getElementById('hr-pending').textContent = pendingCount;
+  document.getElementById('pending-count').textContent = pendingCount;
+
+  let html = '';
+  usersSnap.forEach(d => {
+    const u = d.data();
+    if (u.role === 'hr') return;
+    const initials = (u.nama||u.email||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const lapCount = [...lapSnap.docs].filter(doc => doc.data().uid === d.id).length;
+    const pct = Math.round((lapCount/6)*100);
+    html += `<div class="employee-row" onclick="nav('hr-karyawan',null)">
+      <div class="emp-avatar">${initials}</div>
+      <div style="flex:1;"><div class="emp-name">${u.nama||'—'}</div><div class="emp-pos">${u.posisi||'—'} · NIK ${u.nik||'—'}</div></div>
+      <div class="emp-progress">
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+        <div class="prog-pct">${pct}% · ${lapCount}/6 sesi</div>
+      </div>
+      <span class="badge ${lapCount>=6?'bg':lapCount>0?'bo':'bgr'}" style="margin-left:10px;">${lapCount>=6?'Selesai':lapCount>0?'Aktif':'Belum'}</span>
+    </div>`;
+  });
+  document.getElementById('hr-emp-list').innerHTML = html || '<div class="loading">Belum ada karyawan terdaftar.</div>';
+}
+
+let _allKaryawan = [];
+async function loadAllKaryawan() {
+  const { collection, getDocs } = window._firebaseFns;
+  const snap = await getDocs(collection(window._db, 'users'));
+  _allKaryawan = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderKaryawanTable(_allKaryawan);
+}
+
+function renderKaryawanTable(list) {
+  let html = `<table><thead><tr><th>Nama</th><th>NIK</th><th>Posisi</th><th>Divisi</th><th>Level</th><th>Status</th></tr></thead><tbody>`;
+  list.filter(u => u.role !== 'hr').forEach(u => {
+    html += `<tr>
+      <td><strong>${u.nama||'—'}</strong></td>
+      <td>${u.nik||'—'}</td><td>${u.posisi||'—'}</td>
+      <td>${u.divisi||'—'}</td><td>${u.level||'—'}</td>
+      <td><span class="badge bg">Aktif</span></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('karyawan-table').innerHTML = html;
+}
+
+function filterKaryawan() {
+  const q = document.getElementById('search-emp').value.toLowerCase();
+  renderKaryawanTable(_allKaryawan.filter(u => (u.nama||'').toLowerCase().includes(q) || (u.nik||'').includes(q)));
+}
+
+async function loadApprove() {
+  const { collection, getDocs, doc, setDoc } = window._firebaseFns;
+  const snap = await getDocs(collection(window._db, 'laporan_global'));
+  let html = '';
+  snap.forEach(d => {
+    const data = d.data();
+    if (data.status !== 'pending') return;
+    html += `<div class="approve-card" id="acard-${d.id}">
+      <div class="approve-name">${data.karyawanNama||'—'} · ${data.bulan} · ${data.sesi}</div>
+      <div class="approve-meta">NIK: ${data.karyawanNIK||'—'} · Dikirim: ${data.submittedAt?.toDate?.().toLocaleDateString('id-ID') || '—'}</div>
+      <div style="font-size:12px;color:var(--text);margin-top:8px;padding:8px;background:rgba(0,0,0,.03);border-radius:6px;">
+        <strong>Aktivitas 1:</strong> ${data.a1||'—'}<br>
+        <strong>Kendala 1:</strong> ${data.k1||'—'}
+      </div>
+      <div class="approve-actions">
+        <button class="btn-approve btn-ok" onclick="approveAction('${d.id}','${data.uid}','${data.bulan}','approved')">✓ Setujui</button>
+        <button class="btn-approve btn-reject" onclick="approveAction('${d.id}','${data.uid}','${data.bulan}','rejected')">✗ Tolak</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('approve-list').innerHTML = html || '<div class="loading">Tidak ada laporan yang perlu di-approve.</div>';
+}
+
+async function approveAction(docId, uid, bulan, status) {
+  const { doc, setDoc } = window._firebaseFns;
+  await setDoc(doc(window._db, 'laporan_global', docId), { status }, { merge: true });
+  await setDoc(doc(window._db, 'users', uid, 'laporan', bulan), { status }, { merge: true });
+  const card = document.getElementById('acard-' + docId);
+  if (card) { card.className = 'approve-card ' + (status === 'approved' ? 'approved' : 'rejected'); card.querySelector('.approve-actions').innerHTML = `<span class="badge ${status==='approved'?'bg':'br'}">${status==='approved'?'✓ Disetujui':'✗ Ditolak'}</span>`; }
+  showToast(status === 'approved' ? '✅ Laporan disetujui!' : '❌ Laporan ditolak');
+  loadHRDashboard();
+}
+
+async function registerKaryawan() {
+  const email = document.getElementById('reg-email').value;
+  const pass  = document.getElementById('reg-pass').value;
+  const nama  = document.getElementById('reg-nama').value;
+  const nik   = document.getElementById('reg-nik').value;
+  const posisi= document.getElementById('reg-posisi').value;
+  const role  = document.getElementById('reg-role').value;
+  if (!email||!pass||!nama) { showToast('Isi semua field wajib!','error'); return; }
+  try {
+    const { createUserWithEmailAndPassword, doc, setDoc, serverTimestamp } = window._firebaseFns;
+    const cred = await createUserWithEmailAndPassword(window._auth, email, pass);
+    await setDoc(doc(window._db, 'users', cred.user.uid), { nama, nik, posisi, role, email, createdAt: serverTimestamp() });
+    // Sign back in as HR
+    showToast('✅ Karyawan ' + nama + ' berhasil didaftarkan!');
+    ['reg-email','reg-pass','reg-nama','reg-nik','reg-posisi'].forEach(id => document.getElementById(id).value = '');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
 }
 </script>
 </body>
